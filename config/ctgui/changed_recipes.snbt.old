@@ -1,0 +1,1398 @@
+{
+    data: [],
+    palette: [],
+    changes: [
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_ninja_gauntlet_0",
+            originalId: "ec_es_plugin:steel_ninja_gauntlet",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "samurai_dynasty:cloth"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "sc ",
+                    "c  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_ninja_gauntlet"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "samurai_dynasty:cloth"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "sc ",
+                    "c  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_ninja_gauntlet"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_gauntlet_0",
+            originalId: "ec_es_plugin:steel_gauntlet",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "ss ",
+                    "s  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_gauntlet"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "ss ",
+                    "s  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_gauntlet"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_bow_0",
+            originalId: "ec_es_plugin:steel_bow",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        item: "expanded_combat:iron_stick"
+                    },
+                    m: {
+                        item: "minecraft:string"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    " sm",
+                    "i m",
+                    " sm"
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_bow"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        item: "expanded_combat:iron_stick"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    },
+                    y: {
+                        item: "minecraft:string"
+                    }
+                },
+                pattern: [
+                    " sy",
+                    "i y",
+                    " sy"
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_bow"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_crossbow_0",
+            originalId: "ec_es_plugin:steel_crossbow",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "minecraft:crossbow"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    " s ",
+                    "scs",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_crossbow"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "minecraft:crossbow"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    " s ",
+                    "scs",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_crossbow"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_quiver_0",
+            originalId: "ec_es_plugin:steel_quiver",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    d: {
+                        item: "samurai_dynasty:steel_ingot"
+                    },
+                    l: {
+                        item: "minecraft:leather"
+                    },
+                    s: {
+                        item: "minecraft:string"
+                    }
+                },
+                pattern: [
+                    "sl ",
+                    "l l",
+                    "dl "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_quiver"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    l: {
+                        item: "minecraft:leather"
+                    },
+                    q: {
+                        tag: "c:ingots/steel"
+                    },
+                    s: {
+                        item: "minecraft:string"
+                    }
+                },
+                pattern: [
+                    "sl ",
+                    "l l",
+                    "ql "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_quiver"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_arrow_0",
+            originalId: "ec_es_plugin:steel_arrow",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    f: {
+                        item: "minecraft:feather"
+                    },
+                    j: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "j  ",
+                    "f  "
+                ],
+                result: {
+                    count: 4,
+                    id: "ec_es_plugin:steel_arrow"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    f: {
+                        item: "minecraft:feather"
+                    },
+                    i: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "i  ",
+                    "f  "
+                ],
+                result: {
+                    count: 4,
+                    id: "ec_es_plugin:steel_arrow"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_battle_staff_0",
+            originalId: "ec_es_plugin:steel_battle_staff",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    l: {
+                        item: "expanded_combat:leather_stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " l ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_battle_staff"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    l: {
+                        item: "expanded_combat:leather_stick"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " l ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_battle_staff"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/minecraft/wooden_sword_0",
+            originalId: "minecraft:wooden_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    o: {
+                        tag: "minecraft:planks"
+                    },
+                    s: {
+                        tag: "c:rods/wooden"
+                    }
+                },
+                pattern: [
+                    "o  ",
+                    "o  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:wooden_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    o: {
+                        tag: "minecraft:planks"
+                    }
+                },
+                pattern: [
+                    "o  ",
+                    "o  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:wooden_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/minecraft/stone_sword_0",
+            originalId: "minecraft:stone_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        tag: "minecraft:stone_tool_materials"
+                    },
+                    s: {
+                        tag: "c:rods/wooden"
+                    }
+                },
+                pattern: [
+                    "c  ",
+                    "c  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:stone_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        tag: "minecraft:stone_tool_materials"
+                    },
+                    h: {
+                        item: "magistuarmory:hilt"
+                    }
+                },
+                pattern: [
+                    "c  ",
+                    "c  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:stone_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/minecraft/iron_sword_0",
+            originalId: "minecraft:iron_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        tag: "c:ingots/iron"
+                    },
+                    s: {
+                        tag: "c:rods/wooden"
+                    }
+                },
+                pattern: [
+                    "i  ",
+                    "i  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:iron_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    i: {
+                        tag: "c:ingots/iron"
+                    }
+                },
+                pattern: [
+                    "i  ",
+                    "i  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:iron_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/minecraft/golden_sword_0",
+            originalId: "minecraft:golden_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    g: {
+                        tag: "c:ingots/gold"
+                    },
+                    s: {
+                        tag: "c:rods/wooden"
+                    }
+                },
+                pattern: [
+                    "g  ",
+                    "g  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:golden_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    g: {
+                        tag: "c:ingots/gold"
+                    },
+                    h: {
+                        item: "magistuarmory:hilt"
+                    }
+                },
+                pattern: [
+                    "g  ",
+                    "g  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:golden_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/minecraft/diamond_sword_0",
+            originalId: "minecraft:diamond_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    d: {
+                        tag: "c:gems/diamond"
+                    },
+                    s: {
+                        tag: "c:rods/wooden"
+                    }
+                },
+                pattern: [
+                    "d  ",
+                    "d  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:diamond_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    d: {
+                        tag: "c:gems/diamond"
+                    },
+                    h: {
+                        item: "magistuarmory:hilt"
+                    }
+                },
+                pattern: [
+                    "d  ",
+                    "d  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "minecraft:diamond_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/create/crafting/appliances/cardboard_sword_0",
+            originalId: "create:crafting/appliances/cardboard_sword",
+            originalRecipe: {
+                category: "misc",
+                key: {
+                    c: {
+                        item: "create:cardboard"
+                    },
+                    s: {
+                        tag: "c:rods/wooden"
+                    }
+                },
+                pattern: [
+                    "c  ",
+                    "c  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "create:cardboard_sword"
+                }
+            },
+            recipe: {
+                category: "misc",
+                key: {
+                    c: {
+                        item: "create:cardboard"
+                    },
+                    h: {
+                        item: "magistuarmory:hilt"
+                    }
+                },
+                pattern: [
+                    "c  ",
+                    "c  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "create:cardboard_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_broad_sword_0",
+            originalId: "ec_es_plugin:steel_broad_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    },
+                    y: {
+                        item: "ec_es_plugin:steel_sword"
+                    }
+                },
+                pattern: [
+                    " s ",
+                    "sys",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_broad_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    b: {
+                        item: "magistuarmory:steel_shortsword"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    " s ",
+                    "sbs",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_broad_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_dancer_s_sword_0",
+            originalId: "ec_es_plugin:steel_dancer_s_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        item: "expanded_combat:iron_stick"
+                    },
+                    s: {
+                        item: "ec_es_plugin:steel_sword"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " i ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_dancer_s_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        item: "expanded_combat:iron_stick"
+                    },
+                    s: {
+                        item: "magistuarmory:steel_shortsword"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " i ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_dancer_s_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/cataclysm/black_steel_sword_0",
+            originalId: "cataclysm:black_steel_sword",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    b: {
+                        item: "cataclysm:black_steel_ingot"
+                    },
+                    s: {
+                        item: "minecraft:stick"
+                    }
+                },
+                pattern: [
+                    "b  ",
+                    "b  ",
+                    "s  "
+                ],
+                result: {
+                    count: 1,
+                    id: "cataclysm:black_steel_sword"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    b: {
+                        item: "cataclysm:black_steel_ingot"
+                    },
+                    h: {
+                        item: "magistuarmory:hilt"
+                    }
+                },
+                pattern: [
+                    "b  ",
+                    "b  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "cataclysm:black_steel_sword"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_claymore_0",
+            originalId: "ec_es_plugin:steel_claymore",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    p: {
+                        item: "ec_es_plugin:steel_sword"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "s  ",
+                    "p  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_claymore"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    a: {
+                        item: "magistuarmory:steel_shortsword"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "s  ",
+                    "a  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_claymore"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_cutlass_0",
+            originalId: "ec_es_plugin:steel_cutlass",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    g: {
+                        item: "expanded_combat:gold_stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "s  ",
+                    "g  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_cutlass"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    g: {
+                        item: "expanded_combat:gold_stick"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "s  ",
+                    "g  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_cutlass"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_dagger_0",
+            originalId: "ec_es_plugin:steel_dagger",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        item: "expanded_combat:iron_stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "i  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_dagger"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    i: {
+                        item: "expanded_combat:iron_stick"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "i  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_dagger"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_flail_0",
+            originalId: "ec_es_plugin:steel_flail",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    a: {
+                        item: "minecraft:stick"
+                    },
+                    c: {
+                        item: "minecraft:chain"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_block"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "c  ",
+                    "a  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_flail"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "minecraft:chain"
+                    },
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_block"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "c  ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_flail"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_glaive_0",
+            originalId: "ec_es_plugin:steel_glaive",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    d: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "ec_es_plugin:steel_sword"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " d ",
+                    "d  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_glaive"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    i: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "magistuarmory:steel_shortsword"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " i ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_glaive"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_great_hammer_0",
+            originalId: "ec_es_plugin:steel_great_hammer",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    o: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_block"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " o ",
+                    "o  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_great_hammer"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    r: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_block"
+                    }
+                },
+                pattern: [
+                    "  s",
+                    " r ",
+                    "h  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_great_hammer"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_katana_0",
+            originalId: "ec_es_plugin:steel_katana",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    e: {
+                        item: "ec_es_plugin:steel_sword"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "e  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_katana"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    a: {
+                        item: "magistuarmory:steel_shortsword"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "a  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_katana"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_mace_0",
+            originalId: "ec_es_plugin:steel_mace",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    o: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_block"
+                    }
+                },
+                pattern: [
+                    " s ",
+                    "o  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_mace"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_block"
+                    }
+                },
+                pattern: [
+                    " s ",
+                    "h  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_mace"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_scythe_0",
+            originalId: "ec_es_plugin:steel_scythe",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    d: {
+                        item: "minecraft:stick"
+                    },
+                    j: {
+                        item: "ec_es_plugin:steel_sword"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "sj ",
+                    "  d",
+                    "  d"
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_scythe"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    b: {
+                        item: "minecraft:stick"
+                    },
+                    d: {
+                        item: "magistuarmory:steel_shortsword"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "sd ",
+                    "  b",
+                    "  b"
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_scythe"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_sickle_0",
+            originalId: "ec_es_plugin:steel_sickle",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    e: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "samurai_dynasty:steel_ingot"
+                    }
+                },
+                pattern: [
+                    "ss ",
+                    "e  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_sickle"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    h: {
+                        item: "magistuarmory:hilt"
+                    },
+                    s: {
+                        tag: "c:ingots/steel"
+                    }
+                },
+                pattern: [
+                    "ss ",
+                    "h  ",
+                    "   "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_sickle"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/ec_es_plugin/steel_spear_0",
+            originalId: "ec_es_plugin:steel_spear",
+            originalRecipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "ec_es_plugin:steel_sword"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "c  ",
+                    "c  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_spear"
+                }
+            },
+            recipe: {
+                category: "equipment",
+                key: {
+                    c: {
+                        item: "minecraft:stick"
+                    },
+                    s: {
+                        item: "magistuarmory:steel_shortsword"
+                    }
+                },
+                pattern: [
+                    "s  ",
+                    "c  ",
+                    "c  "
+                ],
+                result: {
+                    count: 1,
+                    id: "ec_es_plugin:steel_spear"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        },
+        {
+            exported: 1b,
+            id: "ctgui/new/cold_sweat/soulspring_lamp_0",
+            originalId: "cold_sweat:soulspring_lamp",
+            originalRecipe: {
+                category: "misc",
+                key: {
+                    c: {
+                        tag: "c:chains"
+                    },
+                    g: {
+                        tag: "c:nuggets/gold"
+                    },
+                    h: {
+                        item: "minecraft:heart_of_the_sea"
+                    },
+                    i: {
+                        tag: "c:ingots/iron"
+                    }
+                },
+                pattern: [
+                    " g ",
+                    "ihi",
+                    " c "
+                ],
+                result: {
+                    components: {
+                        "cold_sweat:fuel": 64.0d
+                    },
+                    count: 1,
+                    id: "cold_sweat:soulspring_lamp"
+                }
+            },
+            recipe: {
+                category: "misc",
+                key: {
+                    b: {
+                        item: "irons_spellbooks:brazier_soul"
+                    },
+                    c: {
+                        tag: "c:chains"
+                    },
+                    g: {
+                        tag: "c:nuggets/gold"
+                    },
+                    i: {
+                        tag: "c:ingots/iron"
+                    }
+                },
+                pattern: [
+                    " g ",
+                    "ibi",
+                    " c "
+                ],
+                result: {
+                    components: {
+                        "cold_sweat:fuel": 64.0d
+                    },
+                    count: 1,
+                    id: "cold_sweat:soulspring_lamp"
+                }
+            },
+            recipeType: "minecraft:crafting",
+            serializer: "minecraft:crafting_shaped",
+            type: "CHANGED"
+        }
+    ]
+}

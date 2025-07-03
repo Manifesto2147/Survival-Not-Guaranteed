@@ -1,0 +1,33 @@
+# Minecraft saves/worlds and user data
+saves/
+xaero/
+XaeroWaypoints_BACKUP240807/
+schematics/
+moddata/
+downloads/
+logs/
+debug/
+crash-reports/
+usercache.json
+usernamecache.json
+servers.dat
+servers.dat_old
+hs_err_pid*.log
+options.txt
+command_history.txt
+
+# Output and cache folders
+.mixin.out/
+class/
+patchouli_data.json
+
+# Ignore mod jars if using a manifest (uncomment if you use Modrinth/Curse manifest)
+mods/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# OS-specific files
+.DS_Store
