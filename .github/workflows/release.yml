@@ -1,0 +1,158 @@
+name: Create and Upload Modpack Release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'config/**'
+      - 'mods/**'
+      - 'scripts/**'
+      - 'shaderpacks/**'
+      - 'resourcepacks/**'
+      - 'modrinth.index.json'
+      - 'pack.toml'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        npm install -g modrinth
+        
+    - name: Get current version and increment
+      id: version
+      run: |
+        # Get current version from modrinth.index.json
+        if [ -f "modrinth.index.json" ]; then
+          CURRENT_VERSION=$(jq -r '.versionId' modrinth.index.json)
+        else
+          CURRENT_VERSION="3.5.2"
+        fi
+        
+        # Parse version parts
+        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+        MAJOR=${VERSION_PARTS[0]}
+        MINOR=${VERSION_PARTS[1]}
+        PATCH=${VERSION_PARTS[2]}
+        
+        # Increment patch version
+        PATCH=$((PATCH + 1))
+        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        
+        echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "Previous version: $CURRENT_VERSION"
+        echo "New version: $NEW_VERSION"
+        
+    - name: Create modrinth.index.json if not exists
+      run: |
+        if [ ! -f "modrinth.index.json" ]; then
+          cat > modrinth.index.json << 'EOF'
+        {
+          "formatVersion": 1,
+          "game": "minecraft",
+          "versionId": "${{ steps.version.outputs.VERSION }}",
+          "name": "Survival Not Guaranteed",
+          "summary": "A challenging survival modpack",
+          "files": [],
+          "dependencies": {
+            "minecraft": "1.20.1",
+            "forge": "47.2.0"
+          }
+        }
+        EOF
+        fi
+        
+    - name: Update version in modrinth.index.json
+      run: |
+        # Update the version in the index file
+        sed -i "s/\"versionId\": \".*\"/\"versionId\": \"${{ steps.version.outputs.VERSION }}\"/" modrinth.index.json
+        
+    - name: Commit version update
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add modrinth.index.json
+        git commit -m "Bump version to ${{ steps.version.outputs.VERSION }}" || echo "No changes to commit"
+        git tag "v${{ steps.version.outputs.VERSION }}"
+        git push origin main || echo "No changes to push"
+        git push origin "v${{ steps.version.outputs.VERSION }}"
+        
+    - name: Create .mrpack file
+      run: |
+        # Create a temporary directory for the pack
+        mkdir -p temp_pack
+        
+        # Copy necessary files (excluding saves, logs, etc. as per .gitignore)
+        if [ -d "config" ]; then cp -r config temp_pack/; fi
+        if [ -d "mods" ]; then cp -r mods temp_pack/; fi
+        if [ -d "scripts" ]; then cp -r scripts temp_pack/; fi
+        if [ -d "shaderpacks" ]; then cp -r shaderpacks temp_pack/; fi
+        if [ -d "resourcepacks" ]; then cp -r resourcepacks temp_pack/; fi
+        if [ -f "modrinth.index.json" ]; then cp modrinth.index.json temp_pack/; fi
+        
+        # Create the .mrpack file (it's just a zip)
+        cd temp_pack
+        zip -r "../Survival-Not-Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack" .
+        cd ..
+        
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: "v${{ steps.version.outputs.VERSION }}"
+        release_name: "Survival Not Guaranteed v${{ steps.version.outputs.VERSION }}"
+        body: |
+          ## Survival Not Guaranteed v${{ steps.version.outputs.VERSION }}
+          
+          Automated release with latest modpack changes.
+          
+          ### Changes in this release:
+          ${{ github.event.head_commit.message }}
+          
+          ### Installation:
+          1. Download the `.mrpack` file below
+          2. Import into Modrinth App, Prism Launcher, or other compatible launcher
+          3. Launch and enjoy!
+          
+          Generated: ${{ github.event.head_commit.timestamp }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload .mrpack to GitHub Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Survival-Not-Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack
+        asset_name: Survival-Not-Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack
+        asset_content_type: application/zip
+        
+    # Uncomment and configure this step if you want to auto-upload to Modrinth
+    # - name: Upload to Modrinth
+    #   env:
+    #     MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+    #   run: |
+    #     # You'll need to set up MODRINTH_TOKEN in your repository secrets
+    #     # and configure your project ID
+    #     modrinth version create \
+    #       --project-id YOUR_PROJECT_ID \
+    #       --version-number ${{ steps.version.outputs.VERSION }} \
+    #       --version-title "Survival Not Guaranteed ${{ steps.version.outputs.VERSION }}" \
+    #       --version-body "Automated release" \
+    #       --game-versions "1.20.1" \
+    #       --loaders "forge" \
+    #       Survival-Not-Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack
