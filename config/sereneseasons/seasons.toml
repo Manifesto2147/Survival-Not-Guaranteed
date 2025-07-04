@@ -81,7 +81,7 @@
 	season = "LATE_WINTER"
 	melt_rolls = 0
 	max_thunder_time = -1
-	biome_temp_adjustment = -0.8
+	biome_temp_adjustment = -0.4
 	min_thunder_time = -1
 #melt_percent is the 0-1 percentage chance a snow or ice block will melt when chosen. (e.g. 100.0 = 100%, 50.0 = 50%)
 #melt_rolls is the number of blocks randomly picked in each chunk, each tick. (High number rolls is not recommended on servers)
@@ -98,7 +98,7 @@
 	season = "EARLY_WINTER"
 	melt_rolls = 0
 	max_thunder_time = -1
-	biome_temp_adjustment = -0.8
+	biome_temp_adjustment = -0.4
 	min_thunder_time = -1
 #melt_percent is the 0-1 percentage chance a snow or ice block will melt when chosen. (e.g. 100.0 = 100%, 50.0 = 50%)
 #melt_rolls is the number of blocks randomly picked in each chunk, each tick. (High number rolls is not recommended on servers)
@@ -166,7 +166,7 @@
 	season = "LATE_AUTUMN"
 	melt_rolls = 1
 	max_thunder_time = 180000
-	biome_temp_adjustment = -0.25
+	biome_temp_adjustment = -0.20
 	min_thunder_time = 12000
 #melt_percent is the 0-1 percentage chance a snow or ice block will melt when chosen. (e.g. 100.0 = 100%, 50.0 = 50%)
 #melt_rolls is the number of blocks randomly picked in each chunk, each tick. (High number rolls is not recommended on servers)
@@ -200,7 +200,7 @@
 	season = "MID_WINTER"
 	melt_rolls = 0
 	max_thunder_time = -1
-	biome_temp_adjustment = -0.8
+	biome_temp_adjustment = -0.4
 	min_thunder_time = -1
 #melt_percent is the 0-1 percentage chance a snow or ice block will melt when chosen. (e.g. 100.0 = 100%, 50.0 = 50%)
 #melt_rolls is the number of blocks randomly picked in each chunk, each tick. (High number rolls is not recommended on servers)
@@ -234,5 +234,5 @@
 	season = "EARLY_SPRING"
 	melt_rolls = 1
 	max_thunder_time = 180000
-	biome_temp_adjustment = -0.25
+	biome_temp_adjustment = -0.20
 	min_thunder_time = 12000
