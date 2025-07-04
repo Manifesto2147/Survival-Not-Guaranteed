@@ -163,13 +163,19 @@ jobs:
           jq -r '.id')
         
         echo "📤 Uploading .mrpack file to release..."
+        echo "Release ID: $RELEASE_ID"
+        echo "MRPACK file: $MRPACK_FILE"
         
-        # Upload the .mrpack file
+        # Get the filename for the asset
+        ASSET_NAME=$(basename "$MRPACK_FILE")
+        echo "Asset name: $ASSET_NAME"
+        
+        # Upload the .mrpack file with proper URL encoding
         curl -X POST \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Content-Type: application/octet-stream" \
           --data-binary "@$MRPACK_FILE" \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$(basename "$MRPACK_FILE")"
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$ASSET_NAME"
         
         echo "✅ GitHub release created successfully!"
         
