@@ -1,0 +1,16 @@
+filename = 'loot_journal-neoforge-1.21.1-4.0.1.jar'
+name = 'Loot Journal'
+side = 'client'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '738be303f84a82434cdbef2289284751d3b708611b26c8c032b57c40cfbee00cf587fc114968300e5e29ba9e19c3dca576567e05f84c9872849dc461f14d00fe'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/OJ6ZYz5L/versions/vnC2WTix/loot_journal-neoforge-1.21.1-4.0.1.jar'
+
+[update.modrinth]
+mod-id = 'OJ6ZYz5L'
+version = 'vnC2WTix'

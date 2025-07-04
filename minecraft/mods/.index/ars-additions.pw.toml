@@ -1,0 +1,16 @@
+filename = 'ars_additions-1.21.1-21.2.2.jar'
+name = 'Ars Additions'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '768baf58d4463bc7b4d76427aa6bd72834f479edfd0284c6d0f3cb8119475d7322a624b1f0fa7b06bd4735f608adacbe5d1443109341ee540e9429618579940f'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/GYK6Gk8R/versions/VS35BpPs/ars_additions-1.21.1-21.2.2.jar'
+
+[update.modrinth]
+mod-id = 'GYK6Gk8R'
+version = 'VS35BpPs'

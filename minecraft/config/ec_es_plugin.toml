@@ -1,0 +1,198 @@
+[steel.durability]
+toolBaseDurability = 1000
+gauntletDurability = 1000
+bowCrossbowDurability = 250
+addedShieldDurability = 600
+[steel.enchanting]
+offenseEnchantability = 12
+defenseEnchantability = 12
+mendingBonus = 0.0
+[steel.offense]
+addedAttackDamage = 3.0
+arrowDamage = 3.25
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.2
+quiverStacks = 7
+[steel.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.5
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 4.5
+afterBasePercentReduction = 0.7
+
+[steel.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_iron"
+[steel.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[kitsune_hide.durability]
+toolBaseDurability = 32
+gauntletDurability = 32
+bowCrossbowDurability = 100
+addedShieldDurability = 0
+[kitsune_hide.enchanting]
+offenseEnchantability = 22
+defenseEnchantability = 25
+mendingBonus = 2.0
+[kitsune_hide.offense]
+addedAttackDamage = 0.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 14
+[kitsune_hide.defense]
+gauntletArmorAmount = 1
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NOT_TRIM"
+baseProtectionAmmount = 8.0
+afterBasePercentReduction = 0.7
+
+[kitsune_hide.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+[kitsune_hide.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[straw.durability]
+toolBaseDurability = 0
+gauntletDurability = 10
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[straw.enchanting]
+offenseEnchantability = 7
+defenseEnchantability = 7
+mendingBonus = 0.0
+[straw.offense]
+addedAttackDamage = 0.5
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[straw.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[straw.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+[straw.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[cloth.durability]
+toolBaseDurability = 0
+gauntletDurability = 150
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[cloth.enchanting]
+offenseEnchantability = 0
+defenseEnchantability = 12
+mendingBonus = 0.0
+[cloth.offense]
+addedAttackDamage = 1.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[cloth.defense]
+gauntletArmorAmount = 1
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[cloth.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_leather"
+[cloth.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[ninja_steel.durability]
+toolBaseDurability = 0
+gauntletDurability = 500
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[ninja_steel.enchanting]
+offenseEnchantability = 0
+defenseEnchantability = 12
+mendingBonus = 0.0
+[ninja_steel.offense]
+addedAttackDamage = 2.5
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[ninja_steel.defense]
+gauntletArmorAmount = 2
+armorToughness = 0.5
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[ninja_steel.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_iron"
+[ninja_steel.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[ninja_netherite.durability]
+toolBaseDurability = 0
+gauntletDurability = 1200
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[ninja_netherite.enchanting]
+offenseEnchantability = 0
+defenseEnchantability = 25
+mendingBonus = 0.0
+[ninja_netherite.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[ninja_netherite.defense]
+gauntletArmorAmount = 3
+armorToughness = 3.0
+knockbackResistance = 0.1
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[ninja_netherite.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[ninja_netherite.crafting]
+isSingleAddition = false
+onlyReplaceResource = []

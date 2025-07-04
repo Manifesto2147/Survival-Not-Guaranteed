@@ -1,0 +1,16 @@
+filename = 'ars_controle-1.21.1-1.6.8.jar'
+name = 'Ars Controle'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21', '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '73a7988ae2bc8e72463a04df3e97d84928895d406f1a26c0a0c8c9330f75eb41595861218b4d1a34120a0da092d85f0881c3c3805adc739734e9500b9bd0a185'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/gL8ijqNQ/versions/2WVO2Rtt/ars_controle-1.21.1-1.6.8.jar'
+
+[update.modrinth]
+mod-id = 'gL8ijqNQ'
+version = '2WVO2Rtt'

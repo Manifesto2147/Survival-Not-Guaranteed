@@ -1,0 +1,16 @@
+filename = 'dungeons-and-taverns-woodland-mansion-replacement-v1.2.jar'
+name = 'Dungeons and Taverns Woodland Mansion Replacement'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21', '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '3cf6db9880c73281aae73640c414b88d08a9f33658fd6db772bf4f56b9327696bee5850b1fcce092893a575f81b2a6a6817ad34587a3bd32e83f55b2eca30619'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/3GfxWFCy/versions/LEkxbqdY/dungeons-and-taverns-woodland-mansion-replacement-v1.2.jar'
+
+[update.modrinth]
+mod-id = '3GfxWFCy'
+version = 'LEkxbqdY'

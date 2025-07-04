@@ -1,0 +1,16 @@
+filename = 'combat_roll-neoforge-2.0.4+1.21.1.jar'
+name = 'Combat Roll'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21', '1.21.1' ]
+x-prismlauncher-release-type = 'beta'
+
+[download]
+hash = 'a85c3fd65a940d93d90676954a6a2dcba18dca9a431752b659a407f6d13421a02f1faf744c012f887ef5de780203d3522b0f784133d6f528e02a74ad09973fbd'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/wGKYL7st/versions/R7D0sles/combat_roll-neoforge-2.0.4%2B1.21.1.jar'
+
+[update.modrinth]
+mod-id = 'wGKYL7st'
+version = 'R7D0sles'

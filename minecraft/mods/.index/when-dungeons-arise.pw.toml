@@ -1,0 +1,16 @@
+filename = 'DungeonsArise-1.21.x-2.1.64-release.jar'
+name = 'When Dungeons Arise'
+side = 'server'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21', '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'c95c5483b1195932aacfd4dcdfa3e73edd5facf419412a00cedf98c349abfb545164996e4fef060e9220c6a80ec6f9a802c1953fa47c76a729b6a22aa44711c9'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/8DfbfASn/versions/R4qYx6o0/DungeonsArise-1.21.x-2.1.64-release.jar'
+
+[update.modrinth]
+mod-id = '8DfbfASn'
+version = 'R4qYx6o0'

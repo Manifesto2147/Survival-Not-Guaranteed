@@ -1,0 +1,16 @@
+filename = 'ec_es_plugin-1.21.1-1.1.5.jar'
+name = 'EC Samurai Dynasty Compat'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '8c8c4c4ba7d14d5b47ecccfb55cdfc6243592cb5ddada0d5c6b35b8b40522ae49232334c8da636d85121f4724e122d2c51616a6a11c38dd4b363312cd102ca34'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/RNAo6Pei/versions/cOBSIf9S/ec_es_plugin-1.21.1-1.1.5.jar'
+
+[update.modrinth]
+mod-id = 'RNAo6Pei'
+version = 'cOBSIf9S'

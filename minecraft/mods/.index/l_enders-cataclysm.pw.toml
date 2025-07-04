@@ -1,0 +1,16 @@
+filename = "L_Ender's Cataclysm 1.21.1-3.04.jar"
+name = "L_Ender's Cataclysm"
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'f5bde2eaecf1d9489650ab4bbce89c2afb03602ce927b46cf7c35b27b396b57c6e59d0e393b564dc474d659512fa2d80dd7203904a160a83b7e84eb212e82363'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/46KJle7n/versions/TAsjHFu7/L_Ender%27s Cataclysm 1.21.1-3.04.jar'
+
+[update.modrinth]
+mod-id = '46KJle7n'
+version = 'TAsjHFu7'

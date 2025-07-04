@@ -1,0 +1,16 @@
+filename = 'fruitsdelight-1.2.8.jar'
+name = 'Fruits Delight'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'd503cf5270e0c774848c38250ac0d6c72dfd4a06b42add4f417fdff4ec59abe088ea24ae8061d8f260417392a573382aa93e3339c485184da64bb22c5f5d2b47'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/g6sbyCTu/versions/ucAv4AKT/fruitsdelight-1.2.8.jar'
+
+[update.modrinth]
+mod-id = 'g6sbyCTu'
+version = 'ucAv4AKT'

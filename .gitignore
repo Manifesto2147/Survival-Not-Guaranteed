@@ -21,8 +21,18 @@ command_history.txt
 class/
 patchouli_data.json
 
-# Ignore mod jars if using a manifest (uncomment if you use Modrinth/Curse manifest)
-mods/
+# Ignore mod jars if using a manifest (currently DISABLED for compatibility)
+# mods/
+
+# PrismLauncher-specific files (keeping minecraft/ as it contains the actual mods)
+instance.cfg
+mmc-pack.json
+minecraft/saves/
+minecraft/logs/
+minecraft/crash-reports/
+minecraft/screenshots/
+minecraft/servers.dat*
+mrpack/
 
 # IDE/editor files
 .vscode/

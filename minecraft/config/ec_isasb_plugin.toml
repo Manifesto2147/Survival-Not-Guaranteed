@@ -1,0 +1,132 @@
+[wanderingMagician.durability]
+toolBaseDurability = 540
+gauntletDurability = 0
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[wanderingMagician.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+[wanderingMagician.offense]
+addedAttackDamage = 1.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[wanderingMagician.defense]
+gauntletArmorAmount = 2
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[wanderingMagician.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_leather"
+[wanderingMagician.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[scarecrow.durability]
+toolBaseDurability = 1782
+gauntletDurability = 0
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[scarecrow.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+[scarecrow.offense]
+addedAttackDamage = 1.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[scarecrow.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[scarecrow.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_turtle"
+[scarecrow.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[magicClothes.durability]
+toolBaseDurability = 2052
+gauntletDurability = 0
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[magicClothes.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+[magicClothes.offense]
+addedAttackDamage = 2.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[magicClothes.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[magicClothes.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_leather"
+[magicClothes.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[netheriteBattlemage.durability]
+toolBaseDurability = 2052
+gauntletDurability = 0
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[netheriteBattlemage.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+[netheriteBattlemage.offense]
+addedAttackDamage = 3.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[netheriteBattlemage.defense]
+gauntletArmorAmount = 3
+armorToughness = 3.0
+knockbackResistance = 0.0
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[netheriteBattlemage.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[netheriteBattlemage.crafting]
+isSingleAddition = false
+onlyReplaceResource = []

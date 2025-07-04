@@ -1,0 +1,13 @@
+{
+  "healAmount": 6,
+  "healthIncreaseLimit": 30,
+  "healthIncreaseAmount": 6,
+  "renderArmors": true,
+  "renderHorseArmors": true,
+  "renderWolfArmors": true,
+  "renderCatArmors": true,
+  "renderChickenArmors": true,
+  "renderCowArmors": true,
+  "renderPigArmors": true,
+  "modernWolfCollar": true
+}

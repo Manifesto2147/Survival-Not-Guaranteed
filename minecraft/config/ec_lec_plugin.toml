@@ -1,0 +1,204 @@
+[ignitium.durability]
+toolBaseDurability = 2355
+gauntletDurability = 2355
+bowCrossbowDurability = 450
+addedShieldDurability = 0
+[ignitium.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.15
+[ignitium.offense]
+addedAttackDamage = 6.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 12
+[ignitium.defense]
+gauntletArmorAmount = 6
+armorToughness = 4.0
+knockbackResistance = 0.15
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 9.0
+afterBasePercentReduction = 0.9
+
+[ignitium.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[ignitium.crafting]
+isSingleAddition = true
+
+[[ignitium.crafting.onlyReplaceResource]]
+namespace = "expanded_combat"
+path = "netherite"
+[witherite.durability]
+toolBaseDurability = 2409
+gauntletDurability = 2409
+bowCrossbowDurability = 400
+addedShieldDurability = 0
+[witherite.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+[witherite.offense]
+addedAttackDamage = 5.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 11
+[witherite.defense]
+gauntletArmorAmount = 4
+armorToughness = 3.5
+knockbackResistance = 0.12
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 8.5
+afterBasePercentReduction = 0.875
+
+[witherite.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[witherite.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[amethystCrabShell.durability]
+toolBaseDurability = 2031
+gauntletDurability = 2031
+bowCrossbowDurability = 350
+addedShieldDurability = 0
+[amethystCrabShell.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+[amethystCrabShell.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 0
+[amethystCrabShell.defense]
+gauntletArmorAmount = 3
+armorToughness = 2.0
+knockbackResistance = 0.1
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 6.5
+afterBasePercentReduction = 0.875
+
+[amethystCrabShell.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[amethystCrabShell.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[cursium.durability]
+toolBaseDurability = 2409
+gauntletDurability = 2409
+bowCrossbowDurability = 450
+addedShieldDurability = 0
+[cursium.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.15
+[cursium.offense]
+addedAttackDamage = 5.5
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 11
+[cursium.defense]
+gauntletArmorAmount = 5
+armorToughness = 4.0
+knockbackResistance = 0.05
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 9.0
+afterBasePercentReduction = 0.9
+
+[cursium.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[cursium.crafting]
+isSingleAddition = true
+
+[[cursium.crafting.onlyReplaceResource]]
+namespace = "expanded_combat"
+path = "netherite"
+[blackSteel.durability]
+toolBaseDurability = 750
+gauntletDurability = 750
+bowCrossbowDurability = 225
+addedShieldDurability = 0
+[blackSteel.enchanting]
+offenseEnchantability = 25
+defenseEnchantability = 25
+mendingBonus = 0.0
+[blackSteel.offense]
+addedAttackDamage = 2.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[blackSteel.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 4.0
+afterBasePercentReduction = 0.675
+
+[blackSteel.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+[blackSteel.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[boneReptile.durability]
+toolBaseDurability = 1923
+gauntletDurability = 1923
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[boneReptile.enchanting]
+offenseEnchantability = 25
+defenseEnchantability = 15
+mendingBonus = 0.0
+[boneReptile.offense]
+addedAttackDamage = 3.5
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+[boneReptile.defense]
+gauntletArmorAmount = 4
+armorToughness = 3.0
+knockbackResistance = 0.2
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[boneReptile.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[boneReptile.crafting]
+isSingleAddition = false
+onlyReplaceResource = []

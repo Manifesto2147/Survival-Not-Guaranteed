@@ -1,0 +1,16 @@
+filename = 'AkashicTome-1.8-29.jar'
+name = 'Akashic Tome'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '59eb5167bd671aaeb0c5aba0434b06d597254109b345876bedb0a06d24dd064bfb0ca4102e040b82d3b2f7f04fdbddcbc68cd51ff2310b89d9ad50f96ac242d7'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/JBthPdnp/versions/iezuV4Rx/AkashicTome-1.8-29.jar'
+
+[update.modrinth]
+mod-id = 'JBthPdnp'
+version = 'iezuV4Rx'

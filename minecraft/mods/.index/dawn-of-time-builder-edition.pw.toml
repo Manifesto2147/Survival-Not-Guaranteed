@@ -1,0 +1,16 @@
+filename = 'dawnoftimebuilder-neoforge-1.21.1-1.6.1.jar'
+name = 'Dawn of Time'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '8cd3d3dd769f4c4bceebcb5f64bc34ea141e5df8c7ae7f1e974ab503eff3e424df3eb87551988871709e1c873ae184905c000c3df48a5b82e99236244928cd8c'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/RgWXq0La/versions/oec4zIe5/dawnoftimebuilder-neoforge-1.21.1-1.6.1.jar'
+
+[update.modrinth]
+mod-id = 'RgWXq0La'
+version = 'oec4zIe5'

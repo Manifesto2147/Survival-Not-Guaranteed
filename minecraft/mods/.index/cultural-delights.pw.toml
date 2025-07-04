@@ -1,0 +1,16 @@
+filename = 'culturaldelights-0.17.7.jar'
+name = 'Cultural Delights'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'beta'
+
+[download]
+hash = 'c8c49f4371d51f9bd180796538685a73b11ebdffae218bf15fe5af355787f8c823dbbd7f2e6e3a6f4887e60ee3e34ebd6e030ce9e95491dd4a0bdd4ea2a269b5'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/YttyNOFA/versions/ymOecmAu/culturaldelights-0.17.7.jar'
+
+[update.modrinth]
+mod-id = 'YttyNOFA'
+version = 'ymOecmAu'

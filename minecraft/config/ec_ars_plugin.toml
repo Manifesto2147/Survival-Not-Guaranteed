@@ -1,0 +1,132 @@
+[sorcerer.durability]
+toolBaseDurability = 0
+gauntletDurability = 660
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[sorcerer.enchanting]
+offenseEnchantability = 30
+defenseEnchantability = 30
+mendingBonus = 0.0
+[sorcerer.offense]
+addedAttackDamage = 1.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 0
+[sorcerer.defense]
+gauntletArmorAmount = 1
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[sorcerer.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_leather"
+[sorcerer.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[arcanist.durability]
+toolBaseDurability = 0
+gauntletDurability = 825
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[arcanist.enchanting]
+offenseEnchantability = 30
+defenseEnchantability = 30
+mendingBonus = 0.0
+[arcanist.offense]
+addedAttackDamage = 2.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 0
+[arcanist.defense]
+gauntletArmorAmount = 2
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[arcanist.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_leather"
+[arcanist.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[battle_mage.durability]
+toolBaseDurability = 0
+gauntletDurability = 1650
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[battle_mage.enchanting]
+offenseEnchantability = 30
+defenseEnchantability = 30
+mendingBonus = 0.0
+[battle_mage.offense]
+addedAttackDamage = 2.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 0
+[battle_mage.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[battle_mage.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_leather"
+[battle_mage.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+[enchanter_s_weapon.durability]
+toolBaseDurability = 0
+gauntletDurability = 2031
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+[enchanter_s_weapon.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.15
+[enchanter_s_weapon.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 0.0
+quiverStacks = 0
+[enchanter_s_weapon.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[enchanter_s_weapon.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+[enchanter_s_weapon.crafting]
+isSingleAddition = false
+onlyReplaceResource = []

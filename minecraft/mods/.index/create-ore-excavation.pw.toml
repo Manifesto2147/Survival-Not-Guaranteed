@@ -1,0 +1,16 @@
+filename = 'createoreexcavation-1.21-1.6.4.jar'
+name = 'Create Ore Excavation'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = '285c232770bcc65074f0647606b59200c02f5535ec1044db01fc4856abc3d211c259cd28ea7ab25158d56ad5aacbd62175c851db821a09c39cf452ffc23516ce'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/ResbpANg/versions/XF4zNKFN/createoreexcavation-1.21-1.6.4.jar'
+
+[update.modrinth]
+mod-id = 'ResbpANg'
+version = 'XF4zNKFN'

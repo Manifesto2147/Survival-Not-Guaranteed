@@ -1,0 +1,16 @@
+filename = 'Enhanced-Celestials-NeoForge-6.0.2.0.jar'
+name = 'Enhanced Celestials'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'c86dc4437a4e853794a5a9cc3eedde171e2bec36437785d6982feea6f5c09489515ec65d7be55986b15e80d3e6122adbc266c678434c9eb9a8f54951fa071a50'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/2rL16t1O/versions/CJiTDt1r/Enhanced-Celestials-NeoForge-6.0.2.0.jar'
+
+[update.modrinth]
+mod-id = '2rL16t1O'
+version = 'CJiTDt1r'

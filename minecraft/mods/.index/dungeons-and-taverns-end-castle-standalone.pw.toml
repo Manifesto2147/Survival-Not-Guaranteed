@@ -1,0 +1,16 @@
+filename = 'dungeons-and-taverns-end-castle-standalone-v1.1.jar'
+name = 'Dungeons and Taverns End Castle Standalone'
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21', '1.21.1' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'f2a8db626b0a856aded8ef9fc3abc29bae18a879ddb9c3f13b405c080e7f6ff8f6c38859b165ff4b9d89dc20379b26173996f910855b2ee2dacdecf4aac820e9'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/WIs8E6hv/versions/5Gf0BYpK/dungeons-and-taverns-end-castle-standalone-v1.1.jar'
+
+[update.modrinth]
+mod-id = 'WIs8E6hv'
+version = '5Gf0BYpK'

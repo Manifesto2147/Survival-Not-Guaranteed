@@ -1,0 +1,16 @@
+filename = 'azisterweaponsedeco-0.2.4.jar'
+name = "Azister's Weapons&Deco"
+side = 'both'
+x-prismlauncher-loaders = [ 'neoforge' ]
+x-prismlauncher-mc-versions = [ '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'ca32cff9c415f5073d26474218b3350741c377d863122afe148cc99086cbc075b6ae3ab018182b620e6426cb89d4303852cde263b721a9e42abe223014ba0581'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/ODH0kp3P/versions/Qjm5Bs6w/azisterweaponsedeco-0.2.4.jar'
+
+[update.modrinth]
+mod-id = 'ODH0kp3P'
+version = 'Qjm5Bs6w'
