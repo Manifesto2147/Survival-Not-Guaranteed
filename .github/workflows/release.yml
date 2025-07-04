@@ -5,21 +5,33 @@ on:
     branches: [ main ]
     paths:
       - 'config/**'
-      - 'mods/**'
+      - 'minecraft/mods/**'
+      - 'minecraft/config/**'
+      - 'minecraft/scripts/**'
+      - 'minecraft/shaderpacks/**'
+      - 'minecraft/resourcepacks/**'
       - 'scripts/**'
       - 'shaderpacks/**'
       - 'resourcepacks/**'
       - 'modrinth.index.json'
       - 'pack.toml'
+      - 'build.sh'
+      - 'mod_overrides.conf'
   workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
       
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -145,13 +157,13 @@ jobs:
         BUMP_TYPE="none"
         
         # Check for mod changes (minor version bump)
-        if echo "$CHANGED_FILES" | grep -q "^mods/"; then
+        if echo "$CHANGED_FILES" | grep -E "^(mods/|minecraft/mods/)"; then
           echo "🔄 Mod changes detected - bumping minor version"
           BUMP_TYPE="minor"
         fi
         
         # Check for config changes (patch version bump)
-        if echo "$CHANGED_FILES" | grep -q "^config/"; then
+        if echo "$CHANGED_FILES" | grep -E "^(config/|minecraft/config/)"; then
           if [ "$BUMP_TYPE" != "minor" ]; then
             echo "⚙️ Config changes detected - bumping patch version"
             BUMP_TYPE="patch"
@@ -161,7 +173,7 @@ jobs:
         fi
         
         # Check for other significant changes that should bump patch
-        if echo "$CHANGED_FILES" | grep -E "^(scripts/|shaderpacks/|resourcepacks/|modrinth\.index\.json)"; then
+        if echo "$CHANGED_FILES" | grep -E "^(scripts/|minecraft/scripts/|shaderpacks/|minecraft/shaderpacks/|resourcepacks/|minecraft/resourcepacks/|modrinth\.index\.json|build\.sh|mod_overrides\.conf)"; then
           if [ "$BUMP_TYPE" == "none" ]; then
             echo "📦 Other modpack changes detected - bumping patch version"
             BUMP_TYPE="patch"
@@ -230,14 +242,20 @@ jobs:
         fi
         
     - name: Commit version update
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add modrinth.index.json
-        git commit -m "Bump version to ${{ steps.version.outputs.VERSION }}" || echo "No changes to commit"
-        git tag "v${{ steps.version.outputs.VERSION }}"
-        git push origin main || echo "No changes to push"
-        git push origin "v${{ steps.version.outputs.VERSION }}"
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Bump version to ${{ steps.version.outputs.VERSION }}"
+          git tag "v${{ steps.version.outputs.VERSION }}"
+          git push origin main
+          git push origin "v${{ steps.version.outputs.VERSION }}"
+        fi
         
     - name: Create enhanced .mrpack file
       run: |
