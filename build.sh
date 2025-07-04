@@ -34,7 +34,123 @@ CURSEFORGE_FOUND=0
 MANUAL_OVERRIDES_USED=0
 PACK_INCLUDED=0
 SMART_UPDATES=0
+CLIENT_ONLY_MODS=0
+SERVER_ONLY_MODS=0
+UNIVERSAL_MODS=0
 FAILED_LOOKUPS=()
+
+# ==================== CLIENT/SERVER ENVIRONMENT DETECTION ====================
+
+# Define client-only mods that should never be installed on servers
+CLIENT_ONLY_MODS=(
+    # Rendering & Graphics
+    "iris" "optifine" "sodium" "embeddium" "rubidium" "oculus" "continuity" "ctm" "connected_textures"
+    "entity_texture_features" "entity_model_features" "more_beautiful_torches" "dynamic_lights"
+    "shader" "complementary" "seus" "bsl" "kuda" "chocapic" "sildurs" "makeup"
+    
+    # UI & HUD Mods
+    "jei" "rei" "emi" "jade" "hwyla" "waila" "appleskin" "torohealth" "health_overlay"
+    "armor_hud" "item_physic" "mouse_tweaks" "inventory_tweaks" "crafting_tweaks" "recipe_book"
+    "mod_menu" "cloth_config" "configured" "catalogue" "controlling" "key_bindings" "input_fix"
+    "gui_clock" "durability_viewer" "equipment_compare" "enchantment_descriptions" "attribute_fix"
+    
+    # Audio & Ambient
+    "ambient_sounds" "sound_physics" "dripsounds" "presence_footsteps" "auditory" "audio_plugin"
+    "sound_device_options" "extreme_sound_muffler" "sounds" "sound_control" "audio_output"
+    
+    # Minimap & Navigation (Client-side display)
+    "xaero" "minimap" "worldmap" "journey_map" "rei_minimap" "voxel_map" "zan_minimap"
+    "antique_atlas" "map_atlases" "cartographer" "waypoint" "navigation" "compass_ribbon"
+    
+    # Performance & Debugging (Client-side only)
+    "fps_display" "lagometer" "debug_hud" "profiler" "spark_client" "performance_monitor"
+    "crash_utilities" "better_f3" "debug_screen" "memory_usage" "cpu_usage" "gpu_usage"
+    
+    # Camera & View
+    "camera_mod" "replay_mod" "screenshot" "photo_mode" "cinematic_camera" "smooth_camera"
+    "camera_utils" "perspective_mod" "view_bobbing" "zoom" "optizoom" "logical_zoom"
+    
+    # Chat & Social (Client-side display)
+    "chat_heads" "chat_signing" "no_chat_reports" "chat_patches" "better_chat" "chat_colors"
+    "emotecraft" "emotes" "skin_layers" "player_animator" "custom_player_models" "ears"
+    
+    # Resource Packs & Assets
+    "resource_pack" "texture_pack" "model_pack" "ctm_pack" "connected_texture" "animation_api"
+    "fresh_animations" "entity_culling" "cull_particles" "particle_culling" "better_animations"
+    
+    # Client-side Storage & Inventory
+    "inventory_hud" "inventory_profiles" "mouse_wheelie" "item_scroller" "inventory_sorter"
+    "quick_stack" "auto_sort" "inventory_tabs" "crafting_station" "recipe_essentials"
+    
+    # Visual Enhancements
+    "better_foliage" "dynamic_trees" "fancy_block_particles" "falling_leaves" "particle_rain"
+    "biome_particle_weather" "environmental_particles" "aurora" "shooting_stars" "better_clouds"
+    
+    # Development & Mod Support
+    "mod_name_tooltip" "mod_finder" "craft_tweaker_gui" "ctgui" "kubejs_ui" "probe_js"
+    "top_addons" "hwyla_addons" "jade_addons" "waila_plugins" "mod_list" "mod_updates"
+    
+    # Specific Mod Names (from your pack)
+    "appleskin" "jei" "xaeros_minimap" "xaeros_worldmap" "iris" "sodium" "ambient_sounds"
+    "sound_physics" "sounds" "armor_hud" "gui_clock" "ctgui" "armorstatues" "healthy_sleep"
+)
+
+# Define server-side only mods (rare, but some exist)
+SERVER_ONLY_MODS=(
+    # Server Management
+    "server_utilities" "forge_essentials" "bukkit_forge" "sponge_forge" "server_tools"
+    "administrative_tools" "server_config" "server_performance" "server_security" "anti_cheat"
+    
+    # World Generation (Server-side processing)
+    "chunk_pregenerator" "world_stripper" "world_border" "spawn_control" "world_management"
+    
+    # Performance (Server-side only)
+    "ai_improvements" "mob_ai" "server_performance" "tick_profiler" "memory_cleaner"
+    "garbage_collector" "chunk_loading" "dimension_manager" "world_loading" "save_optimizer"
+    
+    # Economy & Permissions (Server-side logic)
+    "economy_mod" "permissions" "ranks" "groups" "claims" "protection" "grief_prevention"
+    "shop_system" "auction_house" "currency" "banking" "trading" "market"
+)
+
+# Function to determine if a mod is client-only based on filename
+is_client_only_mod() {
+    local filename="$1"
+    local mod_name=$(echo "$filename" | sed 's/\.jar$//' | sed 's/-[0-9].*$//' | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+    
+    for client_mod in "${CLIENT_ONLY_MODS[@]}"; do
+        if [[ "$mod_name" == *"$client_mod"* ]] || [[ "$client_mod" == *"$mod_name"* ]]; then
+            return 0  # Is client-only
+        fi
+    done
+    return 1  # Not client-only
+}
+
+# Function to determine if a mod is server-only based on filename
+is_server_only_mod() {
+    local filename="$1"
+    local mod_name=$(echo "$filename" | sed 's/\.jar$//' | sed 's/-[0-9].*$//' | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+    
+    for server_mod in "${SERVER_ONLY_MODS[@]}"; do
+        if [[ "$mod_name" == *"$server_mod"* ]] || [[ "$server_mod" == *"$mod_name"* ]]; then
+            return 0  # Is server-only
+        fi
+    done
+    return 1  # Not server-only
+}
+
+# Function to get environment settings for a mod
+get_mod_environment() {
+    local filename="$1"
+    
+    if is_client_only_mod "$filename"; then
+        echo "client_only"
+    elif is_server_only_mod "$filename"; then
+        echo "server_only"
+    else
+        echo "both"
+    fi
+}
 
 # ==================== UTILITY FUNCTIONS ====================
 
@@ -687,6 +803,19 @@ generate_manifest() {
         ;;
     esac
     
+    # Update environment statistics
+    case "$mod_env" in
+      "client_only")
+        CLIENT_ONLY_MODS=$((CLIENT_ONLY_MODS + 1))
+        ;;
+      "server_only")
+        SERVER_ONLY_MODS=$((SERVER_ONLY_MODS + 1))
+        ;;
+      "both")
+        UNIVERSAL_MODS=$((UNIVERSAL_MODS + 1))
+        ;;
+    esac
+    
     # Check for failed lookups in strict mode
     if [ "$result_type" = "FAILED" ]; then
       echo "  - ERROR: Failed to find external download: $filename"
@@ -708,6 +837,29 @@ generate_manifest() {
       echo "  - Updated to: $actual_filename"
     fi
     
+    # Determine environment settings
+    local mod_env=$(get_mod_environment "$actual_filename")
+    local client_env="required"
+    local server_env="required"
+    
+    case "$mod_env" in
+      "client_only")
+        client_env="required"
+        server_env="unsupported"
+        echo "  → Client-only mod detected"
+        ;;
+      "server_only")
+        client_env="unsupported"
+        server_env="required"
+        echo "  → Server-only mod detected"
+        ;;
+      "both")
+        client_env="required"
+        server_env="required"
+        echo "  → Universal mod (client + server)"
+        ;;
+    esac
+    
     # Build file entry
     local entry="    {\n"
     entry="$entry      \"path\": \"mods/$actual_filename\",\n"
@@ -716,8 +868,8 @@ generate_manifest() {
     entry="$entry        \"sha512\": \"$actual_sha512\"\n"
     entry="$entry      },\n"
     entry="$entry      \"env\": {\n"
-    entry="$entry        \"client\": \"required\",\n"
-    entry="$entry        \"server\": \"required\"\n"
+    entry="$entry        \"client\": \"$client_env\",\n"
+    entry="$entry        \"server\": \"$server_env\"\n"
     entry="$entry      },\n"
     entry="$entry      \"fileSize\": $actual_size"
     
@@ -1028,10 +1180,14 @@ generate_changelog() {
   # Add technical details
   detailed_changelog="${detailed_changelog}TECHNICAL DETAILS\n\n"
   detailed_changelog="${detailed_changelog}- Total Mods: $TOTAL_MODS\n"
+  detailed_changelog="${detailed_changelog}- Universal Mods (Client + Server): $UNIVERSAL_MODS\n"
+  detailed_changelog="${detailed_changelog}- Client-Only Mods: $CLIENT_ONLY_MODS\n"
+  detailed_changelog="${detailed_changelog}- Server-Only Mods: $SERVER_ONLY_MODS\n"
   detailed_changelog="${detailed_changelog}- Minecraft Version: $MINECRAFT_VERSION\n"
   detailed_changelog="${detailed_changelog}- NeoForge Version: $NEOFORGE_VERSION\n"
   detailed_changelog="${detailed_changelog}- External Downloads: $((MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED)) of $TOTAL_MODS ($(( (MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED) * 100 / TOTAL_MODS ))%)\n"
-  detailed_changelog="${detailed_changelog}- Pack Size: Optimized with external downloads\n\n"
+  detailed_changelog="${detailed_changelog}- Pack Size: Optimized with external downloads\n"
+  detailed_changelog="${detailed_changelog}- Server Compatibility: Dedicated servers will automatically exclude client-only mods\n\n"
   
   # Add installation instructions with Modrinth App emphasis
   detailed_changelog="${detailed_changelog}INSTALLATION\n\n"
@@ -1085,6 +1241,11 @@ print_statistics() {
   echo "Smart updates applied: $SMART_UPDATES"
   echo "Included in pack: $PACK_INCLUDED"
   echo ""
+  echo "- Environment Distribution:"
+  echo "Universal mods (client + server): $UNIVERSAL_MODS"
+  echo "Client-only mods: $CLIENT_ONLY_MODS"
+  echo "Server-only mods: $SERVER_ONLY_MODS"
+  echo ""
   
   if [ $TOTAL_MODS -gt 0 ]; then
     local external_downloads=$((MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED))
@@ -1105,6 +1266,14 @@ print_statistics() {
     echo "WARNING: $PACK_INCLUDED mods will be included in pack (dependencies or not found on platforms)"
   else
     echo "- All mods have external download URLs - no mods included in pack!"
+  fi
+  
+  if [ $CLIENT_ONLY_MODS -gt 0 ]; then
+    echo "- $CLIENT_ONLY_MODS client-only mods detected (will not be installed on dedicated servers)"
+  fi
+  
+  if [ $SERVER_ONLY_MODS -gt 0 ]; then
+    echo "- $SERVER_ONLY_MODS server-only mods detected (will not be installed on clients)"
   fi
 }
 
@@ -1168,10 +1337,11 @@ main() {
   print_statistics
   
   echo ""
-  echo "+ Build complete! Your .mrpack is optimized for Modrinth App."
+  echo "+ Build complete! Your .mrpack is optimized for Modrinth App with proper client/server separation."
   echo "- File: $PROJECT_NAME-$CURRENT_VERSION.mrpack"
   echo "- Primary target: Modrinth App (optimized structure)"
   echo "- Also compatible with: PrismLauncher, MultiMC, and other launchers"
+  echo "- Server compatibility: Client-only mods automatically excluded from dedicated servers"
   echo "- Mod lookup order: Manual overrides → Modrinth hash → Modrinth search → CurseForge search → Include in pack"
   echo "- Smart updates: Non-dependency mods auto-update to latest compatible versions on hash mismatch"
   echo "- Shader configuration: Pre-configured for MakeUp-UltraFast shaders with 3x GUI scale"
