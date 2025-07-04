@@ -17,6 +17,7 @@ on:
       - 'pack.toml'
       - 'build.sh'
       - 'mod_overrides.conf'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
