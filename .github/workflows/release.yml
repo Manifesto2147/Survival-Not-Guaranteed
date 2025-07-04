@@ -17,8 +17,37 @@ on:
       - 'pack.toml'
       - 'build.sh'
       - 'mod_overrides.conf'
-      - '.github/workflows/**'
-  workflow_dispatch:
+      - '.github/workflows/        upload_to_modrinth() {
+          local file_path="$1"
+          local version="$2"
+          local changelog="$3"
+          
+          echo "📤 Uploading $version to Modrinth..."
+          
+          # Escape special characters in changelog for JSON
+          local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
+          
+          # Get the actual project ID from the project slug if needed
+          local actual_project_id="$PROJECT_ID"
+          if [[ "$PROJECT_ID" == *"-"* ]]; then
+            echo "🔍 Converting project slug to project ID..."
+            local project_response=$(curl -s "https://api.modrinth.com/v2/project/$PROJECT_ID" 2>/dev/null || echo "")
+            if echo "$project_response" | jq -e '.id' >/dev/null 2>&1; then
+              actual_project_id=$(echo "$project_response" | jq -r '.id')
+              echo "✅ Found project ID: $actual_project_id"
+            else
+              echo "❌ Failed to resolve project slug to ID"
+              return 1
+            fi
+          fi
+          
+          # Create JSON data using printf to avoid heredoc issues
+          printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$actual_project_id" > /tmp/modrinth_data.json
+          
+          # Debug: Show the JSON being sent
+          echo "🔍 JSON being sent to Modrinth:"
+          cat /tmp/modrinth_data.json
+          echo ""spatch:
 
 jobs:
   release:
