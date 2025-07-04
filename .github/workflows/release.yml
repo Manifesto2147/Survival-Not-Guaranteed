@@ -49,62 +49,25 @@ jobs:
         MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
-        echo "- Getting latest versions from all platforms..."
+        echo "- Using build script's version detection logic..."
         
-        # Function to compare semantic versions
-        version_gt() {
-          test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
-        }
+        # Let the build script handle version detection
+        chmod +x build.sh
         
-        # Get latest GitHub release version (primary source of truth)
-        echo "Checking GitHub releases..."
-        LATEST_GITHUB_VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          https://api.github.com/repos/${{ github.repository }}/releases/latest | \
-          jq -r '.tag_name // "0.0.0"' | sed 's/^v//')
-        echo "Latest GitHub release: $LATEST_GITHUB_VERSION"
+        # Run build script to get the version (it will detect and increment properly)
+        ./build.sh
         
-        # Get latest Modrinth version
-        LATEST_MODRINTH_VERSION="0.0.0"
-        if [ -n "$MODRINTH_TOKEN" ] && [ -n "$PROJECT_ID" ]; then
-          LATEST_MODRINTH_VERSION=$(curl -s -H "Authorization: $MODRINTH_TOKEN" \
-            "https://api.modrinth.com/v2/project/$PROJECT_ID/version" | \
-            jq -r '.[0].version_number // "0.0.0"' 2>/dev/null || echo "0.0.0")
-          echo "Latest Modrinth version: $LATEST_MODRINTH_VERSION"
+        # Extract version from generated manifest
+        if [ -f "modrinth.index.json" ]; then
+          VERSION=$(jq -r '.versionId' modrinth.index.json)
+          echo "Build script determined version: $VERSION"
+        else
+          echo "ERROR: No modrinth.index.json found after build"
+          exit 1
         fi
-        
-        # Use the highest version as the baseline
-        CURRENT_VERSION="$LATEST_GITHUB_VERSION"
-        if version_gt "$LATEST_MODRINTH_VERSION" "$CURRENT_VERSION"; then
-          CURRENT_VERSION="$LATEST_MODRINTH_VERSION"
-        fi
-        
-        echo "Current version: $CURRENT_VERSION"
-        
-        # Generate new version (increment patch version)
-        IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
-        patch=$((patch + 1))
-        NEW_VERSION="$major.$minor.$patch"
-        echo "New version: $NEW_VERSION"
         
         # Output for next steps
-        echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-        
-    - name: Build .mrpack file
-      run: |
-        VERSION="${{ steps.version.outputs.new_version }}"
-        echo "- Building .mrpack file for version $VERSION..."
-        
-        # Update modrinth.index.json version before building
-        if [ -f "modrinth.index.json" ]; then
-          echo "- Updating modrinth.index.json version to $VERSION..."
-          jq --arg version "$VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
-          mv modrinth.index.json.tmp modrinth.index.json
-          echo "+ Updated modrinth.index.json version to $VERSION"
-        fi
-        
-        chmod +x build.sh
-        ./build.sh
+        echo "new_version=$VERSION" >> $GITHUB_OUTPUT
         
         # Find the generated .mrpack file
         MRPACK_FILE=$(find . -name "*.mrpack" -type f | head -1)
@@ -123,21 +86,20 @@ jobs:
         else
           echo "+ No changelog generated, will use default"
         fi
-      id: build
       
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         VERSION="${{ steps.version.outputs.new_version }}"
-        MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
+        MRPACK_FILE="${{ steps.version.outputs.mrpack_file }}"
         
         echo "- Creating GitHub release for version $VERSION..."
         
         # Create release notes
-        if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
+        if [ -f "${{ steps.version.outputs.changelog_file }}" ]; then
           echo "- Using generated changelog for GitHub release..."
-          RELEASE_NOTES=$(cat "${{ steps.build.outputs.changelog_file }}")
+          RELEASE_NOTES=$(cat "${{ steps.version.outputs.changelog_file }}")
         else
           echo "- Using default release notes..."
           RELEASE_NOTES="## Survival Not Guaranteed v$VERSION
@@ -212,7 +174,7 @@ jobs:
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
         VERSION="${{ steps.version.outputs.new_version }}"
-        MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
+        MRPACK_FILE="${{ steps.version.outputs.mrpack_file }}"
         
         echo "- Enhanced Modrinth sync and upload process..."
         
@@ -305,9 +267,9 @@ jobs:
         fi
         
         # Create changelog
-        if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
+        if [ -f "${{ steps.version.outputs.changelog_file }}" ]; then
           echo "- Using generated changelog from build script..."
-          CHANGELOG=$(cat "${{ steps.build.outputs.changelog_file }}")
+          CHANGELOG=$(cat "${{ steps.version.outputs.changelog_file }}")
           echo "+ Generated changelog loaded ($(echo "$CHANGELOG" | wc -c) chars)"
         else
           echo "- Using default changelog..."
