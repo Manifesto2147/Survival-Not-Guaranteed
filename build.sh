@@ -908,9 +908,9 @@ generate_changelog() {
   local detailed_changelog=""
   
   # Header
-  detailed_changelog="# Survival Not Guaranteed v$new_version\n\n"
-  detailed_changelog="${detailed_changelog}**Release Date:** $(date +'%B %d, %Y')\n"
-  detailed_changelog="${detailed_changelog}**Previous Version:** $base_version\n\n"
+  detailed_changelog="Survival Not Guaranteed v$new_version\n\n"
+  detailed_changelog="${detailed_changelog}Release Date: $(date +'%B %d, %Y')\n"
+  detailed_changelog="${detailed_changelog}Previous Version: $base_version\n\n"
   
   if [ "$change_type" = "mod" ]; then
     echo "- Analyzing mod changes..."
@@ -945,21 +945,21 @@ generate_changelog() {
     fi
     
     # Generate mod changelog
-    detailed_changelog="${detailed_changelog}## Mod Changes\n\n"
+    detailed_changelog="${detailed_changelog}MOD CHANGES\n\n"
     short_changelog="Updated modpack with mod changes"
     
     if [ ${#added_mods[@]} -gt 0 ]; then
-      detailed_changelog="${detailed_changelog}### Added Mods\n"
+      detailed_changelog="${detailed_changelog}Added Mods:\n"
       short_changelog="Added ${#added_mods[@]} new mod(s)"
       for mod in "${added_mods[@]}"; do
         local mod_name=$(echo "$mod" | sed 's/\.jar$//' | sed 's/-[0-9].*$//' | sed 's/_/ /g' | sed 's/\b\w/\U&/g')
-        detailed_changelog="${detailed_changelog}- **$mod_name** (\`$mod\`)\n"
+        detailed_changelog="${detailed_changelog}- $mod_name ($mod)\n"
       done
       detailed_changelog="${detailed_changelog}\n"
     fi
     
     if [ ${#removed_mods[@]} -gt 0 ]; then
-      detailed_changelog="${detailed_changelog}### Removed Mods\n"
+      detailed_changelog="${detailed_changelog}Removed Mods:\n"
       if [ ${#added_mods[@]} -gt 0 ]; then
         short_changelog="$short_changelog, removed ${#removed_mods[@]} mod(s)"
       else
@@ -967,15 +967,15 @@ generate_changelog() {
       fi
       for mod in "${removed_mods[@]}"; do
         local mod_name=$(echo "$mod" | sed 's/\.jar$//' | sed 's/-[0-9].*$//' | sed 's/_/ /g' | sed 's/\b\w/\U&/g')
-        detailed_changelog="${detailed_changelog}- **$mod_name** (\`$mod\`)\n"
+        detailed_changelog="${detailed_changelog}- $mod_name ($mod)\n"
       done
       detailed_changelog="${detailed_changelog}\n"
     fi
     
     # Check for smart updates
     if [ $SMART_UPDATES -gt 0 ]; then
-      detailed_changelog="${detailed_changelog}### Smart Updates\n"
-      detailed_changelog="${detailed_changelog}- **$SMART_UPDATES mod(s)** automatically updated to latest compatible versions\n"
+      detailed_changelog="${detailed_changelog}Smart Updates:\n"
+      detailed_changelog="${detailed_changelog}- $SMART_UPDATES mod(s) automatically updated to latest compatible versions\n"
       detailed_changelog="${detailed_changelog}- Improved compatibility and bug fixes\n\n"
       
       if [ ${#added_mods[@]} -eq 0 ] && [ ${#removed_mods[@]} -eq 0 ]; then
@@ -1003,13 +1003,13 @@ generate_changelog() {
       done <<< "$changed_configs"
     fi
     
-    detailed_changelog="${detailed_changelog}## Configuration Changes\n\n"
+    detailed_changelog="${detailed_changelog}CONFIGURATION CHANGES\n\n"
     short_changelog="Updated configuration settings"
     
     if [ ${#config_changes[@]} -gt 0 ]; then
-      detailed_changelog="${detailed_changelog}### Modified Settings\n"
+      detailed_changelog="${detailed_changelog}Modified Settings:\n"
       for config in "${config_changes[@]}"; do
-        detailed_changelog="${detailed_changelog}- **$config** configuration updated\n"
+        detailed_changelog="${detailed_changelog}- $config configuration updated\n"
       done
       detailed_changelog="${detailed_changelog}\n"
       short_changelog="Updated ${#config_changes[@]} configuration file(s)"
@@ -1020,45 +1020,45 @@ generate_changelog() {
     
   else
     # Other changes (servers.dat, etc.)
-    detailed_changelog="${detailed_changelog}## Other Changes\n\n"
+    detailed_changelog="${detailed_changelog}OTHER CHANGES\n\n"
     detailed_changelog="${detailed_changelog}- Updated modpack components\n"
     detailed_changelog="${detailed_changelog}- General improvements and optimizations\n\n"
     short_changelog="Updated modpack components"
   fi
   
   # Add technical details
-  detailed_changelog="${detailed_changelog}## Technical Details\n\n"
-  detailed_changelog="${detailed_changelog}- **Total Mods:** $TOTAL_MODS\n"
-  detailed_changelog="${detailed_changelog}- **Minecraft Version:** $MINECRAFT_VERSION\n"
-  detailed_changelog="${detailed_changelog}- **NeoForge Version:** $NEOFORGE_VERSION\n"
-  detailed_changelog="${detailed_changelog}- **External Downloads:** $((MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED)) of $TOTAL_MODS ($(( (MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED) * 100 / TOTAL_MODS ))%)\n"
-  detailed_changelog="${detailed_changelog}- **Pack Size:** Optimized with external downloads\n\n"
+  detailed_changelog="${detailed_changelog}TECHNICAL DETAILS\n\n"
+  detailed_changelog="${detailed_changelog}- Total Mods: $TOTAL_MODS\n"
+  detailed_changelog="${detailed_changelog}- Minecraft Version: $MINECRAFT_VERSION\n"
+  detailed_changelog="${detailed_changelog}- NeoForge Version: $NEOFORGE_VERSION\n"
+  detailed_changelog="${detailed_changelog}- External Downloads: $((MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED)) of $TOTAL_MODS ($(( (MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED) * 100 / TOTAL_MODS ))%)\n"
+  detailed_changelog="${detailed_changelog}- Pack Size: Optimized with external downloads\n\n"
   
   # Add installation instructions with Modrinth App emphasis
-  detailed_changelog="${detailed_changelog}## Installation\n\n"
-  detailed_changelog="${detailed_changelog}### Recommended: Modrinth App (Optimized)\n"
-  detailed_changelog="${detailed_changelog}1. Download the \`.mrpack\` file from this release\n"
+  detailed_changelog="${detailed_changelog}INSTALLATION\n\n"
+  detailed_changelog="${detailed_changelog}Recommended: Modrinth App (Optimized)\n"
+  detailed_changelog="${detailed_changelog}1. Download the .mrpack file from this release\n"
   detailed_changelog="${detailed_changelog}2. In Modrinth App: File → Add Instance → From File\n"
   detailed_changelog="${detailed_changelog}3. Select the downloaded .mrpack file\n"
   detailed_changelog="${detailed_changelog}4. Modrinth App will automatically configure optimal settings\n\n"
-  detailed_changelog="${detailed_changelog}### Alternative Launchers\n"
-  detailed_changelog="${detailed_changelog}- **PrismLauncher:** Add Instance → Import → Modrinth Pack\n"
-  detailed_changelog="${detailed_changelog}- **MultiMC:** Add Instance → Import → Browse for .mrpack\n\n"
+  detailed_changelog="${detailed_changelog}Alternative Launchers:\n"
+  detailed_changelog="${detailed_changelog}- PrismLauncher: Add Instance → Import → Modrinth Pack\n"
+  detailed_changelog="${detailed_changelog}- MultiMC: Add Instance → Import → Browse for .mrpack\n\n"
   
   # Add compatibility info with Modrinth App specifics
-  detailed_changelog="${detailed_changelog}## System Requirements\n\n"
-  detailed_changelog="${detailed_changelog}- **Minimum RAM:** 6GB allocated (8GB+ recommended for shaders)\n"
-  detailed_changelog="${detailed_changelog}- **Recommended RAM:** 10GB+ for optimal performance with shaders\n"
-  detailed_changelog="${detailed_changelog}- **Java Version:** Java 21+ required\n"
-  detailed_changelog="${detailed_changelog}- **Client/Server:** Compatible with both single-player and multiplayer\n"
-  detailed_changelog="${detailed_changelog}- **Modrinth App:** Automatic memory allocation based on system specs\n\n"
+  detailed_changelog="${detailed_changelog}SYSTEM REQUIREMENTS\n\n"
+  detailed_changelog="${detailed_changelog}- Minimum RAM: 6GB allocated (8GB+ recommended for shaders)\n"
+  detailed_changelog="${detailed_changelog}- Recommended RAM: 10GB+ for optimal performance with shaders\n"
+  detailed_changelog="${detailed_changelog}- Java Version: Java 21+ required\n"
+  detailed_changelog="${detailed_changelog}- Client/Server: Compatible with both single-player and multiplayer\n"
+  detailed_changelog="${detailed_changelog}- Modrinth App: Automatic memory allocation based on system specs\n\n"
   
   # Add features section
-  detailed_changelog="${detailed_changelog}## Features\n\n"
-  detailed_changelog="${detailed_changelog}- **Pre-configured Shaders:** MakeUp-UltraFast enabled by default\n"
-  detailed_changelog="${detailed_changelog}- **Optimized Settings:** 3x GUI scale and performance tweaks\n"
-  detailed_changelog="${detailed_changelog}- **Community Servers:** Pre-loaded server list\n"
-  detailed_changelog="${detailed_changelog}- **External Downloads:** 100% mod downloads, minimal pack size\n"
+  detailed_changelog="${detailed_changelog}FEATURES\n\n"
+  detailed_changelog="${detailed_changelog}- Pre-configured Shaders: MakeUp-UltraFast enabled by default\n"
+  detailed_changelog="${detailed_changelog}- Optimized Settings: 3x GUI scale and performance tweaks\n"
+  detailed_changelog="${detailed_changelog}- Community Servers: Pre-loaded server list\n"
+  detailed_changelog="${detailed_changelog}- External Downloads: 100% mod downloads, minimal pack size\n"
   
   # Save changelog
   echo -e "$detailed_changelog" > "$changelog_file"

@@ -224,8 +224,17 @@ jobs:
           
           echo "- Uploading $version to Modrinth..."
           
-          # Escape special characters in changelog for JSON
-          local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
+          # Create a more robust JSON-safe changelog
+          local json_safe_changelog=$(echo "$changelog" | \
+            sed 's/\\/\\\\/g' | \
+            sed 's/"/\\"/g' | \
+            sed 's/\t/\\t/g' | \
+            sed 's/\r/\\r/g' | \
+            sed 's/\n/\\n/g' | \
+            tr '\n' ' ' | \
+            sed 's/  */ /g' | \
+            sed 's/# /## /g' | \
+            head -c 4000)
           
           # Get the actual project ID from the project slug if needed
           local actual_project_id="$PROJECT_ID"
@@ -241,12 +250,29 @@ jobs:
             fi
           fi
           
-          # Create JSON data using printf to avoid heredoc issues
-          printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$actual_project_id" > /tmp/modrinth_data.json
+          # Create JSON data using jq to ensure proper escaping
+          jq -n \
+            --arg name "Survival Not Guaranteed v$version" \
+            --arg version_number "$version" \
+            --arg changelog "$json_safe_changelog" \
+            --arg project_id "$actual_project_id" \
+            '{
+              "name": $name,
+              "version_number": $version_number,
+              "changelog": $changelog,
+              "dependencies": [],
+              "game_versions": ["1.21.1"],
+              "version_type": "release",
+              "loaders": ["neoforge"],
+              "featured": true,
+              "project_id": $project_id,
+              "file_parts": ["mrpack-file"]
+            }' > /tmp/modrinth_data.json
           
-          # Debug: Show the JSON being sent
+          # Debug: Show the JSON being sent (truncated for readability)
           echo "- JSON being sent to Modrinth:"
-          cat /tmp/modrinth_data.json
+          cat /tmp/modrinth_data.json | jq -c . | head -c 500
+          echo "..."
           echo ""
           
           # Upload using the JSON file
@@ -281,7 +307,7 @@ jobs:
         # Create changelog
         if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
           echo "- Using generated changelog from build script..."
-          CHANGELOG=$(cat "${{ steps.build.outputs.changelog_file }}" | tr '\n' ' ' | sed 's/"/\\"/g' | sed 's/#/\\#/g' | head -c 5000)
+          CHANGELOG=$(cat "${{ steps.build.outputs.changelog_file }}")
           echo "+ Generated changelog loaded ($(echo "$CHANGELOG" | wc -c) chars)"
         else
           echo "- Using default changelog..."
