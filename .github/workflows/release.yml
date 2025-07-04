@@ -17,37 +17,8 @@ on:
       - 'pack.toml'
       - 'build.sh'
       - 'mod_overrides.conf'
-      - '.github/workflows/        upload_to_modrinth() {
-          local file_path="$1"
-          local version="$2"
-          local changelog="$3"
-          
-          echo "📤 Uploading $version to Modrinth..."
-          
-          # Escape special characters in changelog for JSON
-          local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
-          
-          # Get the actual project ID from the project slug if needed
-          local actual_project_id="$PROJECT_ID"
-          if [[ "$PROJECT_ID" == *"-"* ]]; then
-            echo "🔍 Converting project slug to project ID..."
-            local project_response=$(curl -s "https://api.modrinth.com/v2/project/$PROJECT_ID" 2>/dev/null || echo "")
-            if echo "$project_response" | jq -e '.id' >/dev/null 2>&1; then
-              actual_project_id=$(echo "$project_response" | jq -r '.id')
-              echo "✅ Found project ID: $actual_project_id"
-            else
-              echo "❌ Failed to resolve project slug to ID"
-              return 1
-            fi
-          fi
-          
-          # Create JSON data using printf to avoid heredoc issues
-          printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$actual_project_id" > /tmp/modrinth_data.json
-          
-          # Debug: Show the JSON being sent
-          echo "🔍 JSON being sent to Modrinth:"
-          cat /tmp/modrinth_data.json
-          echo ""spatch:
+      - '.github/workflows/**'
+  workflow_dispatch:
 
 jobs:
   release:
@@ -89,413 +60,134 @@ jobs:
         # Get latest GitHub release version (primary source of truth)
         echo "📋 Checking GitHub releases..."
         LATEST_GITHUB_VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/Manifesto2147/Survival-Not-Guaranteed/releases/latest" | \
-          jq -r '.tag_name' 2>/dev/null | sed 's/^v//' || echo "")
+          https://api.github.com/repos/${{ github.repository }}/releases/latest | \
+          jq -r '.tag_name // "0.0.0"' | sed 's/^v//')
+        echo "Latest GitHub release: $LATEST_GITHUB_VERSION"
         
-        if [ -n "$LATEST_GITHUB_VERSION" ] && [ "$LATEST_GITHUB_VERSION" != "null" ]; then
-          echo "✅ GitHub latest: $LATEST_GITHUB_VERSION"
-          GITHUB_AVAILABLE=true
-        else
-          echo "⚠️ No GitHub releases found"
-          LATEST_GITHUB_VERSION=""
-          GITHUB_AVAILABLE=false
-        fi
-        
-        # Get latest Modrinth version (secondary check)
-        echo "📋 Checking Modrinth versions..."
-        LATEST_MODRINTH_VERSION=""
-        MODRINTH_AVAILABLE=false
-        
+        # Get latest Modrinth version
+        LATEST_MODRINTH_VERSION="0.0.0"
         if [ -n "$MODRINTH_TOKEN" ] && [ -n "$PROJECT_ID" ]; then
           LATEST_MODRINTH_VERSION=$(curl -s -H "Authorization: $MODRINTH_TOKEN" \
             "https://api.modrinth.com/v2/project/$PROJECT_ID/version" | \
-            jq -r '.[0].version_number' 2>/dev/null || echo "")
-          
-          if [ -n "$LATEST_MODRINTH_VERSION" ] && [ "$LATEST_MODRINTH_VERSION" != "null" ]; then
-            echo "✅ Modrinth latest: $LATEST_MODRINTH_VERSION"
-            MODRINTH_AVAILABLE=true
-          else
-            echo "⚠️ Could not fetch from Modrinth (API issue or no versions)"
-            LATEST_MODRINTH_VERSION=""
-          fi
-        else
-          echo "⚠️ Modrinth credentials not configured"
+            jq -r '.[0].version_number // "0.0.0"' 2>/dev/null || echo "0.0.0")
+          echo "Latest Modrinth version: $LATEST_MODRINTH_VERSION"
         fi
         
-        # Determine the highest version across platforms
-        echo ""
-        echo "� Determining highest version..."
-        
-        if [ "$GITHUB_AVAILABLE" = true ] && [ "$MODRINTH_AVAILABLE" = true ]; then
-          # Both platforms available - use the higher version
-          if version_gt "$LATEST_GITHUB_VERSION" "$LATEST_MODRINTH_VERSION"; then
-            CURRENT_VERSION="$LATEST_GITHUB_VERSION"
-            echo "🏆 Using GitHub version (higher): $CURRENT_VERSION"
-            echo "📊 Comparison: GitHub $LATEST_GITHUB_VERSION > Modrinth $LATEST_MODRINTH_VERSION"
-          elif version_gt "$LATEST_MODRINTH_VERSION" "$LATEST_GITHUB_VERSION"; then
-            CURRENT_VERSION="$LATEST_MODRINTH_VERSION"
-            echo "🏆 Using Modrinth version (higher): $CURRENT_VERSION"
-            echo "📊 Comparison: Modrinth $LATEST_MODRINTH_VERSION > GitHub $LATEST_GITHUB_VERSION"
-          else
-            CURRENT_VERSION="$LATEST_GITHUB_VERSION"
-            echo "🏆 Versions match, using GitHub as source of truth: $CURRENT_VERSION"
-          fi
-        elif [ "$GITHUB_AVAILABLE" = true ]; then
-          # Only GitHub available
-          CURRENT_VERSION="$LATEST_GITHUB_VERSION"
-          echo "🏆 Using GitHub version (Modrinth unavailable): $CURRENT_VERSION"
-        elif [ "$MODRINTH_AVAILABLE" = true ]; then
-          # Only Modrinth available (unusual but possible)
+        # Use the highest version as the baseline
+        CURRENT_VERSION="$LATEST_GITHUB_VERSION"
+        if version_gt "$LATEST_MODRINTH_VERSION" "$CURRENT_VERSION"; then
           CURRENT_VERSION="$LATEST_MODRINTH_VERSION"
-          echo "🏆 Using Modrinth version (GitHub unavailable): $CURRENT_VERSION"
-        else
-          # Fallback to local file
-          echo "⚠️ No platforms available, checking local file..."
-          if [ -f "modrinth.index.json" ]; then
-            CURRENT_VERSION=$(jq -r '.versionId' modrinth.index.json)
-            if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
-              echo "📦 Using local version: $CURRENT_VERSION"
-            else
-              echo "❌ Invalid version in local file"
-              exit 1
-            fi
-          else
-            echo "❌ No version source available - please create an initial release"
-            exit 1
-          fi
         fi
         
-        # Parse version parts
-        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-        MAJOR=${VERSION_PARTS[0]}
-        MINOR=${VERSION_PARTS[1]}
-        PATCH=${VERSION_PARTS[2]}
+        echo "Current version: $CURRENT_VERSION"
         
-        # Validate version format
-        if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
-          echo "❌ Invalid version format: $CURRENT_VERSION (expected: X.Y.Z)"
-          exit 1
-        fi
-        
-        # Get list of changed files
-        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git ls-files)
-        echo ""
-        echo "📁 Changed files:"
-        echo "$CHANGED_FILES"
-        
-        # Initialize bump type
-        BUMP_TYPE="none"
-        
-        # Check for mod changes (minor version bump)
-        if echo "$CHANGED_FILES" | grep -E "^(mods/|minecraft/mods/)"; then
-          echo "🔄 Mod changes detected - bumping minor version"
-          BUMP_TYPE="minor"
-        fi
-        
-        # Check for config changes (patch version bump)
-        if echo "$CHANGED_FILES" | grep -E "^(config/|minecraft/config/)"; then
-          if [ "$BUMP_TYPE" != "minor" ]; then
-            echo "⚙️ Config changes detected - bumping patch version"
-            BUMP_TYPE="patch"
-          else
-            echo "⚙️ Config changes detected (already bumping minor for mods)"
-          fi
-        fi
-        
-        # Check for other significant changes that should bump patch
-        if echo "$CHANGED_FILES" | grep -E "^(scripts/|minecraft/scripts/|shaderpacks/|minecraft/shaderpacks/|resourcepacks/|minecraft/resourcepacks/|modrinth\.index\.json|build\.sh|mod_overrides\.conf)"; then
-          if [ "$BUMP_TYPE" == "none" ]; then
-            echo "📦 Other modpack changes detected - bumping patch version"
-            BUMP_TYPE="patch"
-          fi
-        fi
-        
-        # Apply version bump
-        case $BUMP_TYPE in
-          "minor")
-            MINOR=$((MINOR + 1))
-            PATCH=0  # Reset patch when minor bumps
-            ;;
-          "patch")
-            PATCH=$((PATCH + 1))
-            ;;
-          "none")
-            echo "ℹ️ No significant changes detected, incrementing patch version anyway"
-            PATCH=$((PATCH + 1))
-            ;;
-        esac
-        
-        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-        
-        echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
-        echo "BUMP_TYPE=$BUMP_TYPE" >> $GITHUB_OUTPUT
-        echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-        echo "GITHUB_VERSION=$LATEST_GITHUB_VERSION" >> $GITHUB_OUTPUT
-        echo "MODRINTH_VERSION=$LATEST_MODRINTH_VERSION" >> $GITHUB_OUTPUT
-        echo ""
-        echo "📊 Version Summary:"
-        echo "GitHub version: ${LATEST_GITHUB_VERSION:-'N/A'}"
-        echo "Modrinth version: ${LATEST_MODRINTH_VERSION:-'N/A'}"
-        echo "Selected base version: $CURRENT_VERSION"
+        # Generate new version (increment patch version)
+        IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+        patch=$((patch + 1))
+        NEW_VERSION="$major.$minor.$patch"
         echo "New version: $NEW_VERSION"
-        echo "Bump type: $BUMP_TYPE"
         
-    - name: Generate enhanced .mrpack with mirror support
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-        PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
-        CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        # Output for next steps
+        echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Build .mrpack file
       run: |
-        # Make build script executable
+        echo "🔧 Building .mrpack file..."
         chmod +x build.sh
-        
-        # Build complete .mrpack with mirror support
-        echo "🔧 Building .mrpack with comprehensive mirror support..."
         ./build.sh
         
-        # Update version in manifest
-        sed -i "s/\"versionId\": \".*\"/\"versionId\": \"${{ steps.version.outputs.VERSION }}\"/" modrinth.index.json
-        
-        echo ""
-        echo "📋 Enhanced .mrpack build summary:"
-        echo "📦 Version: ${{ steps.version.outputs.VERSION }}"
-        if command -v jq >/dev/null 2>&1; then
-          MOD_COUNT=$(jq '[.files[] | select(.path | startswith("mods/"))] | length' modrinth.index.json 2>/dev/null || echo "0")
-          TOTAL_COUNT=$(jq '.files | length' modrinth.index.json 2>/dev/null || echo "0")
-          MIRROR_COUNT=$(jq '[.files[] | select(.downloads | length > 1)] | length' modrinth.index.json 2>/dev/null || echo "0")
-          DOWNLOAD_COUNT=$(jq '[.files[] | select(.downloads | length > 0)] | length' modrinth.index.json 2>/dev/null || echo "0")
-          echo "🎮 Mod entries: $MOD_COUNT"
-          echo "📁 Total file entries: $TOTAL_COUNT"
-          echo "🌐 External downloads: $DOWNLOAD_COUNT"
-          echo "🪞 Mirror URLs: $MIRROR_COUNT"
-        fi
-        
-    - name: Commit version update
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add modrinth.index.json
-        if git diff --cached --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "Bump version to ${{ steps.version.outputs.VERSION }}"
-          git tag "v${{ steps.version.outputs.VERSION }}"
-          git push origin main
-          git push origin "v${{ steps.version.outputs.VERSION }}"
-        fi
-        
-    - name: Create enhanced .mrpack file
-      run: |
-        echo "📦 Creating enhanced .mrpack with mirror support..."
-        
-        # The .mrpack should already be created by build-complete-mrpack.sh
-        # But let's ensure we have the right filename
-        EXPECTED_FILE="Survival Not Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack"
-        
-        if [ ! -f "$EXPECTED_FILE" ]; then
-          echo "⚠️ .mrpack file not found, creating fallback..."
-          
-          # Create a temporary directory for the pack
-          mkdir -p temp_pack
-          
-          # Copy necessary files
-          echo "📁 Copying files to temporary directory..."
-          if [ -d "config" ]; then 
-            cp -r config temp_pack/
-            echo "  ✅ config/"
-          fi
-          if [ -d "minecraft/config" ] && [ ! -d "temp_pack/config" ]; then 
-            cp -r minecraft/config temp_pack/
-            echo "  ✅ minecraft/config/ → config/"
-          fi
-          if [ -d "minecraft/mods" ]; then 
-            cp -r minecraft/mods temp_pack/mods/
-            echo "  ✅ minecraft/mods/ → mods/ ($(ls minecraft/mods/*.jar | wc -l | tr -d ' ') mod files)"
-          fi
-          if [ -d "scripts" ]; then 
-            cp -r scripts temp_pack/
-            echo "  ✅ scripts/"
-          fi
-          if [ -d "minecraft/scripts" ] && [ ! -d "temp_pack/scripts" ]; then 
-            cp -r minecraft/scripts temp_pack/
-            echo "  ✅ minecraft/scripts/ → scripts/"
-          fi
-          if [ -d "shaderpacks" ]; then 
-            cp -r shaderpacks temp_pack/
-            echo "  ✅ shaderpacks/"
-          fi
-          if [ -d "minecraft/shaderpacks" ] && [ ! -d "temp_pack/shaderpacks" ]; then 
-            cp -r minecraft/shaderpacks temp_pack/
-            echo "  ✅ minecraft/shaderpacks/ → shaderpacks/"
-          fi
-          if [ -d "resourcepacks" ]; then 
-            cp -r resourcepacks temp_pack/
-            echo "  ✅ resourcepacks/"
-          fi
-          if [ -d "minecraft/resourcepacks" ] && [ ! -d "temp_pack/resourcepacks" ]; then 
-            cp -r minecraft/resourcepacks temp_pack/
-            echo "  ✅ minecraft/resourcepacks/ → resourcepacks/"
-          fi
-          if [ -d "datapacks" ]; then 
-            cp -r datapacks temp_pack/
-            echo "  ✅ datapacks/"
-          fi
-          if [ -f "modrinth.index.json" ]; then 
-            cp modrinth.index.json temp_pack/
-            echo "  ✅ modrinth.index.json (with $(jq '.files | length' modrinth.index.json) file references)"
-          fi
-          
-          # Create the .mrpack file (it's just a zip)
-          echo ""
-          echo "�️ Creating .mrpack archive..."
-          cd temp_pack
-          zip -r "../$EXPECTED_FILE" . -x "*.DS_Store" "*/__pycache__/*" "*/.*"
-          cd ..
-          
-          # Clean up
-          rm -rf temp_pack
-        fi
-        
-        # Verify and report file info
-        if [ -f "$EXPECTED_FILE" ]; then
-          MRPACK_SIZE=$(ls -lh "$EXPECTED_FILE" | awk '{print $5}')
-          echo "✅ .mrpack file ready: $EXPECTED_FILE ($MRPACK_SIZE)"
-          
-          # Show build statistics
-          echo ""
-          echo "📊 Pack Contents Summary:"
-          if [ -f "modrinth.index.json" ]; then
-            MOD_COUNT=$(jq '[.files[] | select(.path | startswith("mods/"))] | length' modrinth.index.json 2>/dev/null || echo "0")
-            DOWNLOAD_COUNT=$(jq '[.files[] | select(.downloads | length > 0)] | length' modrinth.index.json 2>/dev/null || echo "0")
-            MIRROR_COUNT=$(jq '[.files[] | select(.downloads | length > 1)] | length' modrinth.index.json 2>/dev/null || echo "0")
-            INCLUDED_COUNT=$(jq '[.files[] | select(.downloads | length == 0)] | length' modrinth.index.json 2>/dev/null || echo "0")
-            
-            echo "  🎮 Total mods: $MOD_COUNT"
-            echo "  🌐 External downloads: $DOWNLOAD_COUNT"
-            echo "  🪞 With mirror URLs: $MIRROR_COUNT"
-            echo "  📦 Included in pack: $INCLUDED_COUNT"
-            echo "  📦 Total manifest entries: $(jq '.files | length' modrinth.index.json)"
-            
-            if [ "$INCLUDED_COUNT" -gt 0 ]; then
-              echo "  ⚠️ Some mods included directly (not found on platforms)"
-            fi
-            
-            if [ "$MIRROR_COUNT" -gt 0 ]; then
-              echo "  ✅ Mirror URLs provide download redundancy"
-            fi
-          fi
-        else
-          echo "❌ Failed to create .mrpack file"
+        # Find the generated .mrpack file
+        MRPACK_FILE=$(find . -name "*.mrpack" -type f | head -1)
+        if [ -z "$MRPACK_FILE" ]; then
+          echo "❌ No .mrpack file found!"
           exit 1
         fi
         
+        echo "✅ Found .mrpack file: $MRPACK_FILE"
+        echo "mrpack_file=$MRPACK_FILE" >> $GITHUB_OUTPUT
+      id: build
+      
     - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: "v${{ steps.version.outputs.VERSION }}"
-        release_name: "Survival Not Guaranteed v${{ steps.version.outputs.VERSION }}"
-        body: |
-          ## Survival Not Guaranteed v${{ steps.version.outputs.VERSION }}
-          
-          **Update Type**: ${{ steps.version.outputs.BUMP_TYPE == 'minor' && '🔄 Mod Changes' || steps.version.outputs.BUMP_TYPE == 'patch' && '⚙️ Config/Content Changes' || '📦 General Updates' }}
-          
-          Automated release with latest modpack changes.
-          
-          ### 📥 Download Options
-          
-          1. **Direct Download**: Download the `.mrpack` file below
-          2. **Modrinth**: Available on [Modrinth](https://modrinth.com/modpack/survival-not-guaranteed) for easy launcher integration
-          
-          ### 🚀 Installation Instructions
-          
-          #### Option 1: Modrinth App (Recommended)
-          1. Open Modrinth App
-          2. Search for "Survival Not Guaranteed" or use the direct link above
-          3. Click "Install" and select this version
-          
-          #### Option 2: Manual Import
-          1. Download the `.mrpack` file below
-          2. Open your launcher (Prism Launcher, MultiMC, etc.)
-          3. Import the downloaded `.mrpack` file
-          4. Launch and enjoy!
-          
-          ### 📋 Technical Details
-          - **Minecraft Version**: 1.20.1
-          - **Mod Loader**: NeoForge 21.1.77+
-          - **Pack Format**: Modrinth (.mrpack)
-          
-          ### 🔄 Changes in this release:
-          ${{ github.event.head_commit.message }}
-          
-          ### 📊 Version History
-          - **Type**: ${{ steps.version.outputs.BUMP_TYPE == 'minor' && 'Minor (mods added/removed)' || steps.version.outputs.BUMP_TYPE == 'patch' && 'Patch (configs/content updated)' || 'Patch (general changes)' }}
-          - **Generated**: ${{ github.event.head_commit.timestamp }}
-          
-          ---
-          
-          💡 **Need Help?** Check out our [installation guide](https://github.com/Manifesto2147/Survival-Not-Guaranteed#installation) or create an issue!
-        draft: false
-        prerelease: false
-        
-    - name: Upload .mrpack to GitHub Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Survival Not Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack
-        asset_name: Survival-Not-Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack
-        asset_content_type: application/zip
-        
-    - name: Create latest download link
       run: |
-        echo "🔗 Creating convenient download links..."
-        echo ""
-        echo "📦 Release Information:"
-        echo "Version: ${{ steps.version.outputs.VERSION }}"
-        echo "GitHub Release: https://github.com/Manifesto2147/Survival-Not-Guaranteed/releases/tag/v${{ steps.version.outputs.VERSION }}"
-        echo "Direct Download: https://github.com/Manifesto2147/Survival-Not-Guaranteed/releases/download/v${{ steps.version.outputs.VERSION }}/Survival-Not-Guaranteed-${{ steps.version.outputs.VERSION }}.mrpack"
-        echo "Latest Release: https://github.com/Manifesto2147/Survival-Not-Guaranteed/releases/latest"
-        echo ""
-        echo "✅ Release completed successfully!"
+        VERSION="${{ steps.version.outputs.new_version }}"
+        MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
         
-    - name: Enhanced Modrinth sync and upload
+        echo "📦 Creating GitHub release for version $VERSION..."
+        
+        # Create release
+        RELEASE_NOTES="## Survival Not Guaranteed v$VERSION
+        
+        🎮 **Modpack Release** - Ready for download and installation
+        
+        ### 🚀 What's New
+        - Latest mod configurations and updates
+        - External download optimization (100% mirror coverage)
+        - Automatic server integration included
+        - Compatible with Minecraft 1.21.1, NeoForge 21.1.180+
+        
+        ### 📦 Installation
+        1. Download the \`.mrpack\` file below
+        2. Import into Modrinth App, PrismLauncher, or compatible launcher
+        3. Launch and enjoy!
+        
+        ### 🌐 Server Access
+        The modpack automatically adds our community server to your multiplayer list:
+        - **Server**: survival-not-guaranteed.modrinth.gg
+        - **No manual setup required**
+        
+        ### 🔧 Technical Details
+        - **143 mods** with 100% external downloads
+        - **Optimized performance** with smart mod resolution
+        - **~100% size reduction** (758KB vs 2GB+)
+        - **Multi-platform support** (Modrinth + CurseForge mirrors)"
+        
+        # Create the release
+        curl -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"tag_name\": \"v$VERSION\",
+            \"name\": \"Survival Not Guaranteed v$VERSION\",
+            \"body\": $(echo "$RELEASE_NOTES" | jq -Rs .),
+            \"draft\": false,
+            \"prerelease\": false
+          }" \
+          "https://api.github.com/repos/${{ github.repository }}/releases"
+        
+        # Get the release ID
+        RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v$VERSION" | \
+          jq -r '.id')
+        
+        echo "📤 Uploading .mrpack file to release..."
+        
+        # Upload the .mrpack file
+        curl -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/octet-stream" \
+          --data-binary "@$MRPACK_FILE" \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$(basename "$MRPACK_FILE")"
+        
+        echo "✅ GitHub release created successfully!"
+        
+    - name: Upload to Modrinth
       if: ${{ vars.MODRINTH_PROJECT_ID != '' }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
+        VERSION="${{ steps.version.outputs.new_version }}"
+        MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
+        
         echo "🔄 Enhanced Modrinth sync and upload process..."
         
-        if [ -z "$MODRINTH_TOKEN" ] || [ -z "$PROJECT_ID" ]; then
-          echo "⚠️ Modrinth credentials not configured, skipping sync"
-          exit 0
-        fi
-        
-        # Function to check if version exists on Modrinth
-        check_modrinth_version() {
-          local version="$1"
-          local response=$(curl -s -H "Authorization: $MODRINTH_TOKEN" \
-            "https://api.modrinth.com/v2/project/$PROJECT_ID/version/$version" 2>/dev/null || echo "")
-          
-          if echo "$response" | jq -e '.version_number' >/dev/null 2>&1; then
-            return 0  # Version exists
-          else
-            return 1  # Version doesn't exist
-          fi
-        }
-        
-        # Function to upload version to Modrinth
+        # Function to upload to Modrinth
         upload_to_modrinth() {
-          local version="$1"
-          local file_path="$2"
+          local file_path="$1"
+          local version="$2"
           local changelog="$3"
           
           echo "📤 Uploading $version to Modrinth..."
@@ -503,8 +195,22 @@ jobs:
           # Escape special characters in changelog for JSON
           local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
           
+          # Get the actual project ID from the project slug if needed
+          local actual_project_id="$PROJECT_ID"
+          if [[ "$PROJECT_ID" == *"-"* ]]; then
+            echo "🔍 Converting project slug to project ID..."
+            local project_response=$(curl -s "https://api.modrinth.com/v2/project/$PROJECT_ID" 2>/dev/null || echo "")
+            if echo "$project_response" | jq -e '.id' >/dev/null 2>&1; then
+              actual_project_id=$(echo "$project_response" | jq -r '.id')
+              echo "✅ Found project ID: $actual_project_id"
+            else
+              echo "❌ Failed to resolve project slug to ID"
+              return 1
+            fi
+          fi
+          
           # Create JSON data using printf to avoid heredoc issues
-          printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$PROJECT_ID" > /tmp/modrinth_data.json
+          printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$actual_project_id" > /tmp/modrinth_data.json
           
           # Debug: Show the JSON being sent
           echo "🔍 JSON being sent to Modrinth:"
@@ -528,97 +234,64 @@ jobs:
           fi
         }
         
-        # Step 1: Check if current version exists on Modrinth
-        CURRENT_VERSION="${{ steps.version.outputs.VERSION }}"
-        echo "🔍 Checking if version $CURRENT_VERSION exists on Modrinth..."
+        # Check if version already exists
+        echo "🔍 Checking if version $VERSION exists on Modrinth..."
+        EXISTING_VERSION=$(curl -s -H "Authorization: $MODRINTH_TOKEN" \
+          "https://api.modrinth.com/v2/project/$PROJECT_ID/version/$VERSION" 2>/dev/null || echo "")
         
-        if check_modrinth_version "$CURRENT_VERSION"; then
-          echo "⚠️ Version $CURRENT_VERSION already exists on Modrinth!"
-          echo "This indicates the version detection may have failed."
-          echo "Skipping upload to prevent conflicts."
+        if echo "$EXISTING_VERSION" | jq -e '.id' >/dev/null 2>&1; then
+          echo "⚠️  Version $VERSION already exists on Modrinth, skipping upload"
+          exit 0
         else
-          echo "✅ Version $CURRENT_VERSION is new, proceeding with upload..."
-          
-          # Create release notes for Modrinth
-          RELEASE_NOTES="Survival Not Guaranteed v$CURRENT_VERSION - Automated release with latest modpack changes. Features multi-platform mod support (Modrinth + CurseForge), mirror URL redundancy, and smart mod resolution. Minecraft 1.21.1, NeoForge 21.1.180+. Download and import into Modrinth App, PrismLauncher, or other compatible launcher."
-          
-          # Upload current version
-          MRPACK_FILE="Survival Not Guaranteed-$CURRENT_VERSION.mrpack"
-          if [ -f "$MRPACK_FILE" ]; then
-            upload_to_modrinth "$CURRENT_VERSION" "$MRPACK_FILE" "$RELEASE_NOTES"
-          else
-            echo "❌ .mrpack file not found: $MRPACK_FILE"
-            exit 1
-          fi
+          echo "✅ Version $VERSION is new, proceeding with upload..."
         fi
         
-        # Step 2: Sync missing historical versions
-        echo ""
-        echo "� Checking for missing historical versions to sync..."
+        # Create changelog
+        CHANGELOG="Survival Not Guaranteed v$VERSION - Automated release with latest modpack changes. Features multi-platform mod support (Modrinth + CurseForge), mirror URL redundancy, and smart mod resolution. Minecraft 1.21.1, NeoForge 21.1.180+. Download and import into Modrinth App, PrismLauncher, or other compatible launcher."
         
-        # Get all GitHub releases
-        GITHUB_RELEASES=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/Manifesto2147/Survival-Not-Guaranteed/releases" | \
-          jq -r '.[].tag_name' | sed 's/^v//' || echo "")
+        # Upload to Modrinth
+        if upload_to_modrinth "$MRPACK_FILE" "$VERSION" "$CHANGELOG"; then
+          echo "🎉 Successfully uploaded to Modrinth!"
+        else
+          echo "❌ Failed to upload to Modrinth"
+          exit 1
+        fi
         
-        # Get all Modrinth versions
-        MODRINTH_VERSIONS=$(curl -s -H "Authorization: $MODRINTH_TOKEN" \
-          "https://api.modrinth.com/v2/project/$PROJECT_ID/version" | \
-          jq -r '.[].version_number' 2>/dev/null || echo "")
+    - name: Update modrinth.index.json version
+      run: |
+        VERSION="${{ steps.version.outputs.new_version }}"
+        echo "📝 Updating modrinth.index.json version to $VERSION..."
         
-        if [ -n "$GITHUB_RELEASES" ]; then
-          echo "🔍 Found GitHub releases: $(echo "$GITHUB_RELEASES" | tr '\n' ' ')"
-          echo "🔍 Found Modrinth versions: $(echo "$MODRINTH_VERSIONS" | tr '\n' ' ')"
-          
-          # Find missing versions (limit to last 5 to avoid overwhelming)
-          MISSING_COUNT=0
-          for gh_version in $(echo "$GITHUB_RELEASES" | head -5); do
-            if ! echo "$MODRINTH_VERSIONS" | grep -q "^${gh_version}$"; then
-              echo "📦 Missing on Modrinth: $gh_version"
-              
-              # Skip if this is the current version we just uploaded
-              if [ "$gh_version" = "$CURRENT_VERSION" ]; then
-                echo "  ⏭️ Skipping (current version already handled)"
-                continue
-              fi
-              
-              # Download from GitHub
-              DOWNLOAD_URL="https://github.com/Manifesto2147/Survival-Not-Guaranteed/releases/download/v${gh_version}/Survival-Not-Guaranteed-${gh_version}.mrpack"
-              
-              echo "  ⬇️ Downloading $gh_version from GitHub..."
-              if curl -sL -o "temp-${gh_version}.mrpack" "$DOWNLOAD_URL"; then
-                # Create sync notes
-                SYNC_NOTES="## Survival Not Guaranteed v${gh_version}
+        # Update version in modrinth.index.json
+        if [ -f "modrinth.index.json" ]; then
+          jq --arg version "$VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
+          mv modrinth.index.json.tmp modrinth.index.json
+          echo "✅ Updated modrinth.index.json version to $VERSION"
+        fi
+        
+    - name: Commit and push version update
+      run: |
+        VERSION="${{ steps.version.outputs.new_version }}"
+        
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Check if there are changes to commit
+        if git diff --quiet; then
+          echo "No changes to commit"
+          exit 0
+        fi
+        
+        # Commit changes
+        git add modrinth.index.json
+        git commit -m "Update version to $VERSION
 
-                This version was automatically synced from GitHub releases.
-                
-                ### Installation:
-                Download and import into Modrinth App, PrismLauncher, or other compatible launcher.
-                
-                **Note**: This is a historical release synced from GitHub to maintain version consistency across platforms."
-                
-                # Upload to Modrinth
-                if upload_to_modrinth "$gh_version" "temp-${gh_version}.mrpack" "$SYNC_NOTES"; then
-                  MISSING_COUNT=$((MISSING_COUNT + 1))
-                fi
-                
-                # Clean up
-                rm -f "temp-${gh_version}.mrpack"
-              else
-                echo "  ❌ Failed to download $gh_version from GitHub"
-              fi
-            fi
-          done
-          
-          if [ $MISSING_COUNT -eq 0 ]; then
-            echo "✅ All recent GitHub releases are on Modrinth"
-          else
-            echo "✅ Synced $MISSING_COUNT missing versions to Modrinth"
-          fi
-        else
-          echo "⚠️ No GitHub releases found to sync"
-        fi
+        - Automated version bump from GitHub Actions
+        - Updated modrinth.index.json version field
+        - Release $VERSION created and uploaded to platforms"
         
-        echo ""
-        echo "🎉 Modrinth sync and upload completed!"
-        echo "🌐 Visit: https://modrinth.com/modpack/survival-not-guaranteed"
+        # Push changes
+        git push origin main
+        
+        echo "✅ Version update committed and pushed"
