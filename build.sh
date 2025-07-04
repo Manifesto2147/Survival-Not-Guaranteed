@@ -7,7 +7,7 @@
 
 set -e
 
-echo "🚀 Building .mrpack with comprehensive mirror support..."
+echo "Building .mrpack with comprehensive mirror support..."
 
 # Configuration
 MODS_DIR="mods"
@@ -17,6 +17,10 @@ PROJECT_NAME="Survival Not Guaranteed"
 MINECRAFT_VERSION="1.21.1"
 MODLOADER="neoforge"
 NEOFORGE_VERSION="21.1.180"
+
+# Project configuration for version checking
+GITHUB_REPO="Manifesto2147/Survival-Not-Guaranteed"
+MODRINTH_PROJECT="${MODRINTH_PROJECT:-survival-not-guaranteed}"  # Set this to your actual Modrinth project slug
 
 # Auto-detect latest compatible NeoForge version if needed
 AUTO_DETECT_NEOFORGE="${AUTO_DETECT_NEOFORGE:-false}"
@@ -108,40 +112,201 @@ get_manual_override() {
 
 # ==================== VERSION DETECTION ====================
 
-get_latest_version() {
-  echo "🔍 Detecting version..."
+# Generate content hash for version comparison
+generate_content_hash() {
+  local mod_hash=""
+  local config_hash=""
   
-  # Try GitHub releases first
+  # Hash mod files
+  if [ -d "minecraft/mods" ]; then
+    mod_hash=$(find minecraft/mods -name "*.jar" -type f | sort | while read -r file; do basename "$file"; done | tr '\n' '|' | shasum | cut -d' ' -f1)
+  fi
+  
+  # Hash key config files
+  if [ -d "config" ]; then
+    config_hash=$(find config -name "*.toml" -o -name "*.json" -o -name "*.json5" | sort | while read -r file; do shasum "$file" 2>/dev/null | cut -d' ' -f1; done | tr '\n' '|' | shasum | cut -d' ' -f1)
+  fi
+  
+  # Hash other modpack content (servers.dat)
+  local other_hash=""
+  if [ -f "minecraft/servers.dat" ]; then
+    other_hash=$(shasum minecraft/servers.dat 2>/dev/null | cut -d' ' -f1)
+  fi
+  
+  # Return combined hash with separators for individual component checking
+  echo "MOD:$mod_hash|CONFIG:$config_hash|OTHER:$other_hash"
+}
+
+# Increment version number based on change type
+increment_version() {
+  local version="$1"
+  local change_type="$2"  # "mod", "config", or "other"
+  
+  local major=$(echo "$version" | cut -d. -f1)
+  local minor=$(echo "$version" | cut -d. -f2)
+  local patch=$(echo "$version" | cut -d. -f3)
+  
+  if [ "$change_type" = "mod" ]; then
+    # Mod changes increment minor version and reset patch
+    minor=$((minor + 1))
+    patch=0
+  else
+    # Config and other changes increment patch version
+    patch=$((patch + 1))
+  fi
+  
+  echo "$major.$minor.$patch"
+}
+
+get_latest_version() {
+  echo "- Detecting version..."
+  
+  # Check GitHub releases
   LATEST_GITHUB_VERSION=""
   if command -v curl >/dev/null 2>&1; then
+    echo "- Checking GitHub releases for $GITHUB_REPO..."
+    
+    local github_response=""
     if [ -n "$GITHUB_TOKEN" ]; then
-      LATEST_GITHUB_VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        "https://api.github.com/repos/Manifesto2147/Survival-Not-Guaranteed/releases/latest" | \
-        jq -r '.tag_name' 2>/dev/null | sed 's/^v//' || echo "")
+      github_response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+        "https://api.github.com/repos/$GITHUB_REPO/releases/latest" 2>/dev/null || echo "")
     else
-      LATEST_GITHUB_VERSION=$(curl -s \
-        "https://api.github.com/repos/Manifesto2147/Survival-Not-Guaranteed/releases/latest" | \
-        jq -r '.tag_name' 2>/dev/null | sed 's/^v//' || echo "")
+      github_response=$(curl -s \
+        "https://api.github.com/repos/$GITHUB_REPO/releases/latest" 2>/dev/null || echo "")
+    fi
+    
+    # Check if we got a valid response
+    if [ -n "$github_response" ]; then
+      local github_error=$(echo "$github_response" | jq -r '.message // empty' 2>/dev/null || echo "")
+      
+      if [ "$github_error" = "Not Found" ]; then
+        echo "- GitHub repository not found: $GITHUB_REPO"
+        echo "- Please check the GITHUB_REPO configuration in build.sh"
+      elif [ -n "$github_error" ]; then
+        echo "- GitHub API error: $github_error"
+      else
+        LATEST_GITHUB_VERSION=$(echo "$github_response" | jq -r '.tag_name' 2>/dev/null | sed 's/^v//' || echo "")
+        if [ -n "$LATEST_GITHUB_VERSION" ] && [ "$LATEST_GITHUB_VERSION" != "null" ]; then
+          echo "- Found GitHub version: $LATEST_GITHUB_VERSION"
+        fi
+      fi
     fi
   fi
   
-  if [ -n "$LATEST_GITHUB_VERSION" ] && [ "$LATEST_GITHUB_VERSION" != "null" ]; then
-    CURRENT_VERSION="$LATEST_GITHUB_VERSION"
-    echo "✅ Using GitHub version: $CURRENT_VERSION"
-  else
-    # Fallback to local manifest
-    if [ -f "modrinth.index.json" ]; then
-      CURRENT_VERSION=$(jq -r '.versionId' modrinth.index.json 2>/dev/null || echo "")
-      if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
-        echo "📦 Using local version: $CURRENT_VERSION"
-      else
-        echo "❌ No valid version found"
-        exit 1
-      fi
-    else
-      echo "❌ No version source available"
-      exit 1
+  # Check Modrinth releases
+  LATEST_MODRINTH_VERSION=""
+  if command -v curl >/dev/null 2>&1; then
+    local modrinth_versions=$(curl -s "https://api.modrinth.com/v2/project/$MODRINTH_PROJECT/version" 2>/dev/null || echo "")
+    if [ -n "$modrinth_versions" ] && echo "$modrinth_versions" | jq -e '.[0]' >/dev/null 2>&1; then
+      LATEST_MODRINTH_VERSION=$(echo "$modrinth_versions" | jq -r '.[0].version_number' 2>/dev/null || echo "")
     fi
+  fi
+  
+  # Get local version for comparison
+  local local_version=""
+  if [ -f "modrinth.index.json" ]; then
+    local_version=$(jq -r '.versionId' modrinth.index.json 2>/dev/null || echo "")
+  fi
+  
+  # Compare versions and find the highest
+  local base_version=""
+  local version_source=""
+  
+  # Helper function to compare semantic versions (simplified)
+  is_version_higher() {
+    local v1="$1"  # version to test
+    local v2="$2"  # base version
+    
+    # Convert versions to comparable numbers (assumes format x.y.z)
+    local v1_num=$(echo "$v1" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')
+    local v2_num=$(echo "$v2" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')
+    
+    [ "$v1_num" -gt "$v2_num" ]
+  }
+  
+  # Start with a baseline
+  if [ -n "$local_version" ] && [ "$local_version" != "null" ]; then
+    base_version="$local_version"
+    version_source="local"
+    echo "- Found local version: $local_version"
+  else
+    base_version="3.5.15"
+    version_source="default"
+    echo "- No local version, using default: $base_version"
+  fi
+  
+  # Check GitHub version
+  if [ -n "$LATEST_GITHUB_VERSION" ] && [ "$LATEST_GITHUB_VERSION" != "null" ]; then
+    echo "- Found GitHub version: $LATEST_GITHUB_VERSION"
+    if is_version_higher "$LATEST_GITHUB_VERSION" "$base_version"; then
+      base_version="$LATEST_GITHUB_VERSION"
+      version_source="GitHub"
+    fi
+  else
+    echo "- No GitHub releases found"
+  fi
+  
+  # Check Modrinth version
+  if [ -n "$LATEST_MODRINTH_VERSION" ] && [ "$LATEST_MODRINTH_VERSION" != "null" ]; then
+    echo "- Found Modrinth version: $LATEST_MODRINTH_VERSION"
+    if is_version_higher "$LATEST_MODRINTH_VERSION" "$base_version"; then
+      base_version="$LATEST_MODRINTH_VERSION"
+      version_source="Modrinth"
+    fi
+  else
+    echo "- No Modrinth releases found"
+  fi
+  
+  echo "+ Using highest version as base: $base_version (from $version_source)"
+  
+  # Check if content has changed
+  local current_hash=$(generate_content_hash)
+  local stored_hash=""
+  
+  if [ -f ".content_hash" ]; then
+    stored_hash=$(cat .content_hash)
+  fi
+  
+  if [ "$current_hash" != "$stored_hash" ]; then
+    echo "- Content changes detected, analyzing change type..."
+    
+    # Parse current and stored hashes
+    local current_mod_hash=$(echo "$current_hash" | sed 's/.*MOD:\([^|]*\).*/\1/')
+    local current_config_hash=$(echo "$current_hash" | sed 's/.*CONFIG:\([^|]*\).*/\1/')
+    local current_other_hash=$(echo "$current_hash" | sed 's/.*OTHER:\([^|]*\).*/\1/')
+    
+    local stored_mod_hash=""
+    local stored_config_hash=""
+    local stored_other_hash=""
+    
+    if [ -n "$stored_hash" ]; then
+      stored_mod_hash=$(echo "$stored_hash" | sed 's/.*MOD:\([^|]*\).*/\1/')
+      stored_config_hash=$(echo "$stored_hash" | sed 's/.*CONFIG:\([^|]*\).*/\1/')
+      stored_other_hash=$(echo "$stored_hash" | sed 's/.*OTHER:\([^|]*\).*/\1/')
+    fi
+    
+    # Determine change type
+    local change_type="config"  # Default to config change
+    if [ "$current_mod_hash" != "$stored_mod_hash" ]; then
+      change_type="mod"
+      echo "- Mod changes detected"
+    elif [ "$current_config_hash" != "$stored_config_hash" ]; then
+      change_type="config"
+      echo "- Config changes detected"
+    elif [ "$current_other_hash" != "$stored_other_hash" ]; then
+      change_type="other"
+      echo "- Other changes detected (servers.dat)"
+    fi
+    
+    CURRENT_VERSION=$(increment_version "$base_version" "$change_type")
+    echo "+ New version: $CURRENT_VERSION"
+    
+    # Store new hash
+    echo "$current_hash" > .content_hash
+  else
+    echo "- No content changes detected"
+    CURRENT_VERSION="$base_version"
+    echo "+ Using version: $CURRENT_VERSION"
   fi
 }
 
@@ -149,7 +314,7 @@ get_latest_version() {
 
 get_latest_neoforge_version() {
   if [ "$AUTO_DETECT_NEOFORGE" = "true" ]; then
-    echo "🔍 Detecting latest NeoForge version for Minecraft $MINECRAFT_VERSION..."
+    echo "- Detecting latest NeoForge version for Minecraft $MINECRAFT_VERSION..."
     
     # Query NeoForge API for latest version
     local neoforge_versions=$(curl -s "https://api.neoforged.net/v1/versions" 2>/dev/null || echo "")
@@ -163,15 +328,15 @@ get_latest_neoforge_version() {
         .version" | sort -V | tail -1)
       
       if [ -n "$latest_version" ] && [ "$latest_version" != "null" ]; then
-        echo "✅ Latest NeoForge version: $latest_version"
+        echo "+ Latest NeoForge version: $latest_version"
         NEOFORGE_VERSION="$latest_version"
         return 0
       fi
     fi
     
-    echo "⚠️ Could not detect latest NeoForge version, using configured: $NEOFORGE_VERSION"
+    echo "WARNING: Could not detect latest NeoForge version, using configured: $NEOFORGE_VERSION"
   else
-    echo "📦 Using configured NeoForge version: $NEOFORGE_VERSION"
+    echo "- Using configured NeoForge version: $NEOFORGE_VERSION"
   fi
 }
 
@@ -252,7 +417,7 @@ search_curseforge_by_name() {
   if [ -n "$known_projects" ]; then
     # Try to find the latest file for this project
     local project_url="https://www.curseforge.com/minecraft/mc-mods/$known_projects"
-    echo "🔍 Checking CurseForge project: $known_projects" >&2
+    echo "- Checking CurseForge project: $known_projects" >&2
     
     # This is a simplified approach - in a real implementation you'd scrape the page
     # For now, we'll construct likely download URLs based on known patterns
@@ -426,12 +591,12 @@ smart_mod_lookup() {
         
         # If we have an expected hash and it doesn't match, handle intelligently
         if [ -n "$expected_hash" ] && [ "$expected_hash" != "null" ] && [ "$file_hash" != "$expected_hash" ]; then
-            echo "  ⚠️ Hash mismatch detected for $filename"
+            echo "  WARNING: Hash mismatch detected for $filename"
             echo "    Local: $file_hash"
             echo "    Expected: $expected_hash"
             
             if ! is_dependency_mod "$filename"; then
-                echo "  🔄 Non-dependency mod - attempting smart update..."
+                echo "  - Non-dependency mod - attempting smart update..."
                 
                 local update_result=$(get_latest_compatible_version "$filename")
                 if [ $? -eq 0 ]; then
@@ -440,12 +605,12 @@ smart_mod_lookup() {
                     local new_hash=$(echo "$update_result" | cut -d'|' -f4)
                     local new_size=$(echo "$update_result" | cut -d'|' -f5)
                     
-                    echo "  ✅ Found updated version: $new_filename"
+                    echo "  + Found updated version: $new_filename"
                     echo "FOUND|smart-update|$new_url|$new_hash|$new_size|$new_filename"
                     return 0
                 fi
             else
-                echo "  🔗 Dependency mod - will include in pack to avoid conflicts"
+                echo "  NOTE: Dependency mod - will include in pack to avoid conflicts"
                 echo "INCLUDE|dependency-safety|$filename|"
                 return 0
             fi
@@ -460,7 +625,7 @@ smart_mod_lookup() {
 # ==================== MANIFEST GENERATION ====================
 
 generate_manifest() {
-  echo "🔧 Generating manifest..."
+  echo "- Generating manifest..."
   
   local mod_entries=""
   local file_count=0
@@ -472,7 +637,7 @@ generate_manifest() {
   elif [ -d "$MODS_DIR" ]; then
     effective_mods_dir="$MODS_DIR"
   else
-    echo "❌ No mods directory found"
+    echo "- ERROR: No mods directory found"
     exit 1
   fi
   
@@ -489,7 +654,7 @@ generate_manifest() {
     local file_sha512=$(calculate_sha512 "$mod_file")
     local file_size=$(get_file_size "$mod_file")
     
-    echo "🔍 Processing: $filename"
+    echo "- Processing: $filename"
     
     # Lookup mod with smart update support
     local lookup_result=$(smart_mod_lookup "$mod_file")
@@ -522,7 +687,7 @@ generate_manifest() {
     
     # Check for failed lookups in strict mode
     if [ "$result_type" = "FAILED" ]; then
-      echo "  ❌ Failed to find external download: $filename"
+      echo "  - ERROR: Failed to find external download: $filename"
       continue # Skip this mod, don't add to manifest
     fi
     
@@ -538,7 +703,7 @@ generate_manifest() {
       # Need to calculate SHA512 for the updated file
       actual_sha512=$(calculate_sha512 "$mod_file")
       actual_size="$updated_size"
-      echo "  🔄 Updated to: $actual_filename"
+      echo "  - Updated to: $actual_filename"
     fi
     
     # Build file entry
@@ -559,10 +724,10 @@ generate_manifest() {
       entry="$entry,\n      \"downloads\": [\n"
       entry="$entry        \"$download_url\"\n"
       entry="$entry      ]"
-      echo "  ✅ $source: $download_url"
+      echo "  + $source: $download_url"
     else
       entry="$entry,\n      \"downloads\": []"
-      echo "  📦 Will include in pack: $filename"
+      echo "  - Will include in pack: $filename"
     fi
     
     entry="$entry\n    }"
@@ -596,13 +761,13 @@ $(echo -e "$mod_entries")
 }
 EOF
   
-  echo "✅ Generated manifest with $file_count mod entries"
+  echo "+ Generated manifest with $file_count mod entries"
 }
 
 # ==================== PACK CREATION ====================
 
 create_mrpack() {
-  echo "📦 Creating .mrpack file..."
+  echo "- Creating .mrpack file..."
   
   local pack_name="$PROJECT_NAME-$CURRENT_VERSION.mrpack"
   local temp_dir="temp_pack"
@@ -617,22 +782,22 @@ create_mrpack() {
   # Copy configuration files
   if [ -d "config" ]; then
     cp -r config "$temp_dir/"
-    echo "  ✅ config/"
+    echo "  + config/"
   fi
   
   if [ -d "minecraft/config" ] && [ ! -d "$temp_dir/config" ]; then
     cp -r minecraft/config "$temp_dir/"
-    echo "  ✅ minecraft/config/ → config/"
+    echo "  + minecraft/config/ → config/"
   fi
   
   # Copy other assets
   for dir in scripts shaderpacks resourcepacks datapacks; do
     if [ -d "$dir" ]; then
       cp -r "$dir" "$temp_dir/"
-      echo "  ✅ $dir/"
+      echo "  + $dir/"
     elif [ -d "minecraft/$dir" ] && [ ! -d "$temp_dir/$dir" ]; then
       cp -r "minecraft/$dir" "$temp_dir/"
-      echo "  ✅ minecraft/$dir/ → $dir/"
+      echo "  + minecraft/$dir/ → $dir/"
     fi
   done
   
@@ -641,7 +806,7 @@ create_mrpack() {
   if [ -f "minecraft/servers.dat" ]; then
     mkdir -p "$temp_dir/overrides"
     cp "minecraft/servers.dat" "$temp_dir/overrides/servers.dat"
-    echo "  ✅ minecraft/servers.dat → overrides/servers.dat (community server list)"
+    echo "  + minecraft/servers.dat → overrides/servers.dat (community server list)"
   fi
   
   # Include mods that couldn't be resolved
@@ -668,7 +833,7 @@ create_mrpack() {
       
       if [ "$result_type" = "INCLUDE" ] || [ "$source" = "dependency-safety" ]; then
         cp "$mod_file" "$temp_dir/mods/"
-        echo "  📦 Including: $filename"
+        echo "  - Including: $filename"
       fi
     done
   fi
@@ -682,14 +847,14 @@ create_mrpack() {
   rm -rf "$temp_dir"
   
   local pack_size=$(ls -lh "$pack_name" | awk '{print $5}')
-  echo "✅ Created: $pack_name ($pack_size)"
+  echo "+ Created: $pack_name ($pack_size)"
 }
 
 # ==================== STATISTICS ====================
 
 print_statistics() {
   echo ""
-  echo "📊 Build Statistics:"
+  echo "- Build Statistics:"
   echo "────────────────────"
   echo "Total mods processed: $TOTAL_MODS"
   echo "Modrinth downloads: $MODRINTH_FOUND"
@@ -702,29 +867,29 @@ print_statistics() {
   if [ $TOTAL_MODS -gt 0 ]; then
     local external_downloads=$((MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED))
     local coverage=$((external_downloads * 100 / TOTAL_MODS))
-    echo "📈 External download coverage: $coverage%"
-    echo "📦 Pack size reduction: ~$((100 - (PACK_INCLUDED * 100 / TOTAL_MODS)))%"
+    echo "External download coverage: $coverage%"
+    echo "Pack size reduction: ~$((100 - (PACK_INCLUDED * 100 / TOTAL_MODS)))%"
   else
-    echo "📈 External download coverage: 0%"
-    echo "📦 Pack size reduction: 0%"
+    echo "External download coverage: 0%"
+    echo "- Pack size reduction: 0%"
   fi
   echo ""
   
   if [ $SMART_UPDATES -gt 0 ]; then
-    echo "🔄 $SMART_UPDATES mods were auto-updated to latest compatible versions"
+    echo "- $SMART_UPDATES mods were auto-updated to latest compatible versions"
   fi
   
   if [ $PACK_INCLUDED -gt 0 ]; then
-    echo "⚠️ $PACK_INCLUDED mods will be included in pack (dependencies or not found on platforms)"
+    echo "WARNING: $PACK_INCLUDED mods will be included in pack (dependencies or not found on platforms)"
   else
-    echo "🎉 All mods have external download URLs - no mods included in pack!"
+    echo "- All mods have external download URLs - no mods included in pack!"
   fi
 }
 
 # ==================== MAIN EXECUTION ====================
 
 main() {
-  echo "🚀 Final .mrpack Builder"
+  echo "Final .mrpack Builder"
   echo "========================"
   echo ""
   
@@ -740,13 +905,13 @@ main() {
   # Check for failed lookups in strict mode
   if [ "$STRICT_EXTERNAL_DOWNLOADS" = "true" ] && [ ${#FAILED_LOOKUPS[@]} -gt 0 ]; then
     echo ""
-    echo "❌ Build failed: Strict external downloads mode enabled"
+    echo "- ERROR: Build failed: Strict external downloads mode enabled"
     echo "   The following mods could not be found on external platforms:"
     for failed_mod in "${FAILED_LOOKUPS[@]}"; do
       echo "   - $failed_mod"
     done
     echo ""
-    echo "💡 To fix this, you can:"
+    echo "- To fix this, you can:"
     echo "   1. Add manual overrides for these mods in mod_overrides.conf"
     echo "   2. Set STRICT_EXTERNAL_DOWNLOADS=false to include them in the pack"
     echo "   3. Set up a CurseForge API key for better CurseForge search"
@@ -761,13 +926,13 @@ main() {
   print_statistics
   
   echo ""
-  echo "✅ Build complete! Your .mrpack is ready for distribution."
-  echo "📦 File: $PROJECT_NAME-$CURRENT_VERSION.mrpack"
-  echo "🌐 Compatible with: Modrinth, PrismLauncher, MultiMC, and other launchers"
-  echo "🔄 Mod lookup order: Manual overrides → Modrinth hash → Modrinth search → CurseForge search → Include in pack"
-  echo "🧠 Smart updates: Non-dependency mods auto-update to latest compatible versions on hash mismatch"
+  echo "+ Build complete! Your .mrpack is ready for distribution."
+  echo "- File: $PROJECT_NAME-$CURRENT_VERSION.mrpack"
+  echo "- Compatible with: Modrinth, PrismLauncher, MultiMC, and other launchers"
+  echo "- Mod lookup order: Manual overrides → Modrinth hash → Modrinth search → CurseForge search → Include in pack"
+  echo "Smart updates: Non-dependency mods auto-update to latest compatible versions on hash mismatch"
   echo ""
-  echo "💡 Next steps:"
+  echo "- Next steps:"
   echo "1. Test the .mrpack file in your launcher"
   echo "2. Upload to GitHub releases"
   echo "3. Push to Modrinth if configured"

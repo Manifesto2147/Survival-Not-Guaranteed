@@ -16,6 +16,9 @@ hs_err_pid*.log
 options.txt
 command_history.txt
 
+# Build artifacts
+.content_hash
+
 # Output and cache folders
 .mixin.out/
 class/

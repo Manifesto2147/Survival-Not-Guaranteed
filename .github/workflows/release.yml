@@ -10,14 +10,13 @@ on:
       - 'minecraft/scripts/**'
       - 'minecraft/shaderpacks/**'
       - 'minecraft/resourcepacks/**'
+      - 'minecraft/servers.dat'
       - 'scripts/**'
       - 'shaderpacks/**'
       - 'resourcepacks/**'
       - 'modrinth.index.json'
       - 'pack.toml'
-      - 'build.sh'
       - 'mod_overrides.conf'
-      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -50,7 +49,7 @@ jobs:
         MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
-        echo "🔍 Getting latest versions from all platforms..."
+        echo "- Getting latest versions from all platforms..."
         
         # Function to compare semantic versions
         version_gt() {
@@ -94,14 +93,14 @@ jobs:
     - name: Build .mrpack file
       run: |
         VERSION="${{ steps.version.outputs.new_version }}"
-        echo "🔧 Building .mrpack file for version $VERSION..."
+        echo "- Building .mrpack file for version $VERSION..."
         
         # Update modrinth.index.json version before building
         if [ -f "modrinth.index.json" ]; then
-          echo "📝 Updating modrinth.index.json version to $VERSION..."
+          echo "- Updating modrinth.index.json version to $VERSION..."
           jq --arg version "$VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
           mv modrinth.index.json.tmp modrinth.index.json
-          echo "✅ Updated modrinth.index.json version to $VERSION"
+          echo "+ Updated modrinth.index.json version to $VERSION"
         fi
         
         chmod +x build.sh
@@ -110,11 +109,11 @@ jobs:
         # Find the generated .mrpack file
         MRPACK_FILE=$(find . -name "*.mrpack" -type f | head -1)
         if [ -z "$MRPACK_FILE" ]; then
-          echo "❌ No .mrpack file found!"
+          echo "- FAILED: No .mrpack file found!"
           exit 1
         fi
         
-        echo "✅ Found .mrpack file: $MRPACK_FILE"
+        echo "+ Found .mrpack file: $MRPACK_FILE"
         echo "mrpack_file=$MRPACK_FILE" >> $GITHUB_OUTPUT
       id: build
       
@@ -125,30 +124,30 @@ jobs:
         VERSION="${{ steps.version.outputs.new_version }}"
         MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
         
-        echo "📦 Creating GitHub release for version $VERSION..."
+        echo "- Creating GitHub release for version $VERSION..."
         
         # Create release
         RELEASE_NOTES="## Survival Not Guaranteed v$VERSION
         
-        🎮 **Modpack Release** - Ready for download and installation
+        ****Modpack Release** - Ready for download and installation
         
-        ### 🚀 What's New
+        ### - What's New
         - Latest mod configurations and updates
         - External download optimization (100% mirror coverage)
         - Automatic server integration included
         - Compatible with Minecraft 1.21.1, NeoForge 21.1.180+
         
-        ### 📦 Installation
+        ### - Installation
         1. Download the \`.mrpack\` file below
         2. Import into Modrinth App, PrismLauncher, or compatible launcher
         3. Launch and enjoy!
         
-        ### 🌐 Server Access
+        ### - Server Access
         The modpack automatically adds our community server to your multiplayer list:
         - **Server**: survival-not-guaranteed.modrinth.gg
         - **No manual setup required**
         
-        ### 🔧 Technical Details
+        ### - Technical Details
         - **143 mods** with 100% external downloads
         - **Optimized performance** with smart mod resolution
         - **~100% size reduction** (758KB vs 2GB+)
@@ -172,7 +171,7 @@ jobs:
           "https://api.github.com/repos/${{ github.repository }}/releases/tags/v$VERSION" | \
           jq -r '.id')
         
-        echo "📤 Uploading .mrpack file to release..."
+        echo "- Uploading .mrpack file to release..."
         echo "Release ID: $RELEASE_ID"
         echo "MRPACK file: $MRPACK_FILE"
         
@@ -190,7 +189,7 @@ jobs:
           --data-binary "@$MRPACK_FILE" \
           "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$ASSET_NAME_ENCODED"
         
-        echo "✅ GitHub release created successfully!"
+        echo "+ GitHub release created successfully!"
         
     - name: Upload to Modrinth
       if: ${{ vars.MODRINTH_PROJECT_ID != '' }}
@@ -201,7 +200,7 @@ jobs:
         VERSION="${{ steps.version.outputs.new_version }}"
         MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
         
-        echo "🔄 Enhanced Modrinth sync and upload process..."
+        echo "- Enhanced Modrinth sync and upload process..."
         
         # Function to upload to Modrinth
         upload_to_modrinth() {
@@ -209,7 +208,7 @@ jobs:
           local version="$2"
           local changelog="$3"
           
-          echo "📤 Uploading $version to Modrinth..."
+          echo "- Uploading $version to Modrinth..."
           
           # Escape special characters in changelog for JSON
           local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
@@ -217,13 +216,13 @@ jobs:
           # Get the actual project ID from the project slug if needed
           local actual_project_id="$PROJECT_ID"
           if [[ "$PROJECT_ID" == *"-"* ]]; then
-            echo "🔍 Converting project slug to project ID..."
+            echo "- Converting project slug to project ID..."
             local project_response=$(curl -s "https://api.modrinth.com/v2/project/$PROJECT_ID" 2>/dev/null || echo "")
             if echo "$project_response" | jq -e '.id' >/dev/null 2>&1; then
               actual_project_id=$(echo "$project_response" | jq -r '.id')
-              echo "✅ Found project ID: $actual_project_id"
+              echo "+ Found project ID: $actual_project_id"
             else
-              echo "❌ Failed to resolve project slug to ID"
+              echo "- FAILED: Failed to resolve project slug to ID"
               return 1
             fi
           fi
@@ -232,7 +231,7 @@ jobs:
           printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$actual_project_id" > /tmp/modrinth_data.json
           
           # Debug: Show the JSON being sent
-          echo "🔍 JSON being sent to Modrinth:"
+          echo "- JSON being sent to Modrinth:"
           cat /tmp/modrinth_data.json
           echo ""
           
@@ -244,25 +243,25 @@ jobs:
             -F "mrpack-file=@$file_path" 2>/dev/null || echo "")
           
           if echo "$response" | jq -e '.id' >/dev/null 2>&1; then
-            echo "✅ Successfully uploaded $version to Modrinth"
+            echo "+ Successfully uploaded $version to Modrinth"
             return 0
           else
-            echo "❌ Failed to upload $version to Modrinth"
+            echo "- FAILED: Failed to upload $version to Modrinth"
             echo "Response: $response"
             return 1
           fi
         }
         
         # Check if version already exists
-        echo "🔍 Checking if version $VERSION exists on Modrinth..."
+        echo "- Checking if version $VERSION exists on Modrinth..."
         EXISTING_VERSION=$(curl -s -H "Authorization: $MODRINTH_TOKEN" \
           "https://api.modrinth.com/v2/project/$PROJECT_ID/version/$VERSION" 2>/dev/null || echo "")
         
         if echo "$EXISTING_VERSION" | jq -e '.id' >/dev/null 2>&1; then
-          echo "⚠️  Version $VERSION already exists on Modrinth, skipping upload"
+          echo "WARNING: Version $VERSION already exists on Modrinth, skipping upload"
           exit 0
         else
-          echo "✅ Version $VERSION is new, proceeding with upload..."
+          echo "+ Version $VERSION is new, proceeding with upload..."
         fi
         
         # Create changelog
@@ -270,9 +269,9 @@ jobs:
         
         # Upload to Modrinth
         if upload_to_modrinth "$MRPACK_FILE" "$VERSION" "$CHANGELOG"; then
-          echo "🎉 Successfully uploaded to Modrinth!"
+          echo "- Successfully uploaded to Modrinth!"
         else
-          echo "❌ Failed to upload to Modrinth"
+          echo "- FAILED: Failed to upload to Modrinth"
           exit 1
         fi
         
@@ -301,4 +300,4 @@ jobs:
         # Push changes
         git push origin main
         
-        echo "✅ Version update committed and pushed"
+        echo "+ Version update committed and pushed"
