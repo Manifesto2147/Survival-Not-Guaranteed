@@ -1047,8 +1047,8 @@ generate_changelog() {
   
   # Add compatibility info with Modrinth App specifics
   detailed_changelog="${detailed_changelog}SYSTEM REQUIREMENTS\n\n"
-  detailed_changelog="${detailed_changelog}- Minimum RAM: 6GB allocated (8GB+ recommended for shaders)\n"
-  detailed_changelog="${detailed_changelog}- Recommended RAM: 10GB+ for optimal performance with shaders\n"
+  detailed_changelog="${detailed_changelog}- Minimum RAM: 2GB allocated (4GB recommended for optimal performance)\n"
+  detailed_changelog="${detailed_changelog}- With Shaders: 4GB+ recommended for smooth shader performance\n"
   detailed_changelog="${detailed_changelog}- Java Version: Java 21+ required\n"
   detailed_changelog="${detailed_changelog}- Client/Server: Compatible with both single-player and multiplayer\n"
   detailed_changelog="${detailed_changelog}- Modrinth App: Automatic memory allocation based on system specs\n\n"

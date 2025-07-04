@@ -193,9 +193,6 @@ jobs:
             sed 's/\t/\\t/g' | \
             sed 's/\r/\\r/g' | \
             sed 's/\n/\\n/g' | \
-            tr '\n' ' ' | \
-            sed 's/  */ /g' | \
-            sed 's/# /## /g' | \
             head -c 4000)
           
           # Get the actual project ID from the project slug if needed
