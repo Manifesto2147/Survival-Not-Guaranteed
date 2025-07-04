@@ -474,21 +474,8 @@ jobs:
           # Escape special characters in changelog for JSON
           local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
           
-          # Create JSON data separately to avoid shell interpretation issues
-          cat > /tmp/modrinth_data.json << EOF
-{
-  "name": "Survival Not Guaranteed v${version}",
-  "version_number": "${version}",
-  "changelog": "${escaped_changelog}",
-  "dependencies": [],
-  "game_versions": ["1.21.1"],
-  "version_type": "release",
-  "loaders": ["neoforge"],
-  "featured": true,
-  "project_id": "${PROJECT_ID}",
-  "file_parts": ["mrpack-file"]
-}
-EOF
+          # Create JSON data using printf to avoid heredoc issues
+          printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$PROJECT_ID" > /tmp/modrinth_data.json
           
           # Upload using the JSON file
           local response=$(curl -X POST "https://api.modrinth.com/v2/version" \
