@@ -93,7 +93,17 @@ jobs:
         
     - name: Build .mrpack file
       run: |
-        echo "🔧 Building .mrpack file..."
+        VERSION="${{ steps.version.outputs.new_version }}"
+        echo "🔧 Building .mrpack file for version $VERSION..."
+        
+        # Update modrinth.index.json version before building
+        if [ -f "modrinth.index.json" ]; then
+          echo "📝 Updating modrinth.index.json version to $VERSION..."
+          jq --arg version "$VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
+          mv modrinth.index.json.tmp modrinth.index.json
+          echo "✅ Updated modrinth.index.json version to $VERSION"
+        fi
+        
         chmod +x build.sh
         ./build.sh
         
@@ -166,16 +176,19 @@ jobs:
         echo "Release ID: $RELEASE_ID"
         echo "MRPACK file: $MRPACK_FILE"
         
-        # Get the filename for the asset
+        # Get the filename for the asset and URL encode it
         ASSET_NAME=$(basename "$MRPACK_FILE")
+        # URL encode spaces and special characters
+        ASSET_NAME_ENCODED=$(echo "$ASSET_NAME" | sed 's/ /%20/g')
         echo "Asset name: $ASSET_NAME"
+        echo "Asset name (URL encoded): $ASSET_NAME_ENCODED"
         
         # Upload the .mrpack file with proper URL encoding
         curl -X POST \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Content-Type: application/octet-stream" \
           --data-binary "@$MRPACK_FILE" \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$ASSET_NAME"
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$ASSET_NAME_ENCODED"
         
         echo "✅ GitHub release created successfully!"
         
@@ -261,18 +274,6 @@ jobs:
         else
           echo "❌ Failed to upload to Modrinth"
           exit 1
-        fi
-        
-    - name: Update modrinth.index.json version
-      run: |
-        VERSION="${{ steps.version.outputs.new_version }}"
-        echo "📝 Updating modrinth.index.json version to $VERSION..."
-        
-        # Update version in modrinth.index.json
-        if [ -f "modrinth.index.json" ]; then
-          jq --arg version "$VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
-          mv modrinth.index.json.tmp modrinth.index.json
-          echo "✅ Updated modrinth.index.json version to $VERSION"
         fi
         
     - name: Commit and push version update
