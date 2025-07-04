@@ -1,0 +1,26 @@
+#This file stores the shader options for OptiFine/Iris
+#Generated for Survival Not Guaranteed modpack
+#Thu Jul 04 07:33:04 CDT 2025
+
+# Enable shaders by default
+shaders=true
+
+# Set the default shader pack
+shaderPack=MakeUp-UltraFast-9.1f.zip
+
+# Performance settings optimized for the MakeUp shader
+shadowMapHalfRes=false
+shadowMapResolution=2048
+shadowDistance=128.0
+shadowIntervalSize=2.0
+sampleCount=1
+cloudShadow=true
+oldHandLight=default
+oldLighting=default
+separateAo=false
+underwaterOverlay=true
+sun=true
+moon=true
+vignette=true
+backFaceSolid=false
+translucent=false

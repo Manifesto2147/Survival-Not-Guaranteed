@@ -57,7 +57,7 @@ jobs:
         }
         
         # Get latest GitHub release version (primary source of truth)
-        echo "📋 Checking GitHub releases..."
+        echo "Checking GitHub releases..."
         LATEST_GITHUB_VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/${{ github.repository }}/releases/latest | \
           jq -r '.tag_name // "0.0.0"' | sed 's/^v//')
@@ -115,6 +115,14 @@ jobs:
         
         echo "+ Found .mrpack file: $MRPACK_FILE"
         echo "mrpack_file=$MRPACK_FILE" >> $GITHUB_OUTPUT
+        
+        # Check if changelog was generated
+        if [ -f "CHANGELOG.md" ]; then
+          echo "changelog_file=CHANGELOG.md" >> $GITHUB_OUTPUT
+          echo "+ Found generated changelog: CHANGELOG.md"
+        else
+          echo "+ No changelog generated, will use default"
+        fi
       id: build
       
     - name: Create GitHub Release
@@ -126,8 +134,13 @@ jobs:
         
         echo "- Creating GitHub release for version $VERSION..."
         
-        # Create release
-        RELEASE_NOTES="## Survival Not Guaranteed v$VERSION
+        # Create release notes
+        if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
+          echo "- Using generated changelog for GitHub release..."
+          RELEASE_NOTES=$(cat "${{ steps.build.outputs.changelog_file }}")
+        else
+          echo "- Using default release notes..."
+          RELEASE_NOTES="## Survival Not Guaranteed v$VERSION
         
         ****Modpack Release** - Ready for download and installation
         
@@ -152,6 +165,7 @@ jobs:
         - **Optimized performance** with smart mod resolution
         - **~100% size reduction** (758KB vs 2GB+)
         - **Multi-platform support** (Modrinth + CurseForge mirrors)"
+        fi
         
         # Create the release
         curl -X POST \
@@ -265,7 +279,14 @@ jobs:
         fi
         
         # Create changelog
-        CHANGELOG="Survival Not Guaranteed v$VERSION - Automated release with latest modpack changes. Features multi-platform mod support (Modrinth + CurseForge), mirror URL redundancy, and smart mod resolution. Minecraft 1.21.1, NeoForge 21.1.180+. Download and import into Modrinth App, PrismLauncher, or other compatible launcher."
+        if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
+          echo "- Using generated changelog from build script..."
+          CHANGELOG=$(cat "${{ steps.build.outputs.changelog_file }}" | tr '\n' ' ' | sed 's/"/\\"/g' | sed 's/#/\\#/g' | head -c 5000)
+          echo "+ Generated changelog loaded ($(echo "$CHANGELOG" | wc -c) chars)"
+        else
+          echo "- Using default changelog..."
+          CHANGELOG="Survival Not Guaranteed v$VERSION - Automated release with latest modpack changes. Features multi-platform mod support (Modrinth + CurseForge), mirror URL redundancy, and smart mod resolution. Minecraft 1.21.1, NeoForge 21.1.180+. Download and import into Modrinth App, PrismLauncher, or other compatible launcher."
+        fi
         
         # Upload to Modrinth
         if upload_to_modrinth "$MRPACK_FILE" "$VERSION" "$CHANGELOG"; then
