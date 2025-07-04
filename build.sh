@@ -47,6 +47,18 @@ calculate_sha1() {
   fi
 }
 
+calculate_sha512() {
+  local file="$1"
+  if command -v sha512sum >/dev/null 2>&1; then
+    sha512sum "$file" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 512 "$file" | cut -d' ' -f1
+  else
+    echo "Error: No SHA512 utility found" >&2
+    return 1
+  fi
+}
+
 get_file_size() {
   local file="$1"
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -473,7 +485,8 @@ generate_manifest() {
     fi
     
     local filename=$(basename "$mod_file")
-    local file_hash=$(calculate_sha1 "$mod_file")
+    local file_sha1=$(calculate_sha1 "$mod_file")
+    local file_sha512=$(calculate_sha512 "$mod_file")
     local file_size=$(get_file_size "$mod_file")
     
     echo "🔍 Processing: $filename"
@@ -515,12 +528,15 @@ generate_manifest() {
     
     # Handle smart updates - use updated filename/hash if available
     local actual_filename="$filename"
-    local actual_hash="$file_hash"
+    local actual_sha1="$file_sha1"
+    local actual_sha512="$file_sha512"
     local actual_size="$file_size"
     
     if [ "$source" = "smart-update" ] && [ -n "$updated_filename" ]; then
       actual_filename="$updated_filename"
-      actual_hash="$updated_hash"
+      actual_sha1="$updated_hash"  # This is still SHA1 from the lookup
+      # Need to calculate SHA512 for the updated file
+      actual_sha512=$(calculate_sha512 "$mod_file")
       actual_size="$updated_size"
       echo "  🔄 Updated to: $actual_filename"
     fi
@@ -529,7 +545,8 @@ generate_manifest() {
     local entry="    {\n"
     entry="$entry      \"path\": \"mods/$actual_filename\",\n"
     entry="$entry      \"hashes\": {\n"
-    entry="$entry        \"sha1\": \"$actual_hash\"\n"
+    entry="$entry        \"sha1\": \"$actual_sha1\",\n"
+    entry="$entry        \"sha512\": \"$actual_sha512\"\n"
     entry="$entry      },\n"
     entry="$entry      \"env\": {\n"
     entry="$entry        \"client\": \"required\",\n"

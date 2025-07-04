@@ -39,5 +39,8 @@ mrpack/
 .idea/
 *.iml
 
+# Generated files
+*.mrpack
+
 # OS-specific files
 .DS_Store
