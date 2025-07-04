@@ -471,22 +471,30 @@ jobs:
           
           echo "📤 Uploading $version to Modrinth..."
           
-          # Create multipart form data
+          # Escape special characters in changelog for JSON
+          local escaped_changelog=$(echo "$changelog" | sed 's/"/\\"/g' | sed 's/\$/\\$/g' | tr '\n' ' ' | tr -d '\000-\037')
+          
+          # Create JSON data separately to avoid shell interpretation issues
+          cat > /tmp/modrinth_data.json << EOF
+{
+  "name": "Survival Not Guaranteed v${version}",
+  "version_number": "${version}",
+  "changelog": "${escaped_changelog}",
+  "dependencies": [],
+  "game_versions": ["1.21.1"],
+  "version_type": "release",
+  "loaders": ["neoforge"],
+  "featured": true,
+  "project_id": "${PROJECT_ID}",
+  "file_parts": ["mrpack-file"]
+}
+EOF
+          
+          # Upload using the JSON file
           local response=$(curl -X POST "https://api.modrinth.com/v2/version" \
             -H "Authorization: $MODRINTH_TOKEN" \
             -H "Content-Type: multipart/form-data" \
-            -F "data={
-              \"name\": \"Survival Not Guaranteed v$version\",
-              \"version_number\": \"$version\",
-              \"changelog\": \"$changelog\",
-              \"dependencies\": [],
-              \"game_versions\": [\"1.21.1\"],
-              \"version_type\": \"release\",
-              \"loaders\": [\"neoforge\"],
-              \"featured\": true,
-              \"project_id\": \"$PROJECT_ID\",
-              \"file_parts\": [\"mrpack-file\"]
-            }" \
+            -F "data=@/tmp/modrinth_data.json" \
             -F "mrpack-file=@$file_path" 2>/dev/null || echo "")
           
           if echo "$response" | jq -e '.id' >/dev/null 2>&1; then
@@ -511,30 +519,7 @@ jobs:
           echo "✅ Version $CURRENT_VERSION is new, proceeding with upload..."
           
           # Create release notes for Modrinth
-          RELEASE_NOTES="## Survival Not Guaranteed v$CURRENT_VERSION
-
-          **Update Type**: ${{ steps.version.outputs.BUMP_TYPE == 'minor' && '🔄 Mod Changes' || steps.version.outputs.BUMP_TYPE == 'patch' && '⚙️ Config/Content Changes' || '📦 General Updates' }}
-
-          Automated release with latest modpack changes and enhanced mirror support.
-
-          ### 🚀 Features:
-          - **Multi-platform mod support**: Modrinth (primary) + CurseForge (fallback)
-          - **Mirror URL redundancy**: Backup download links for reliability
-          - **Smart mod resolution**: Automatic external downloads with local fallback
-          - **Optimized pack size**: Minimal downloads, maximum compatibility
-
-          ### Changes in this release:
-          ${{ github.event.head_commit.message }}
-
-          ### Installation:
-          Download and import into Modrinth App, PrismLauncher, or other compatible launcher.
-
-          Generated: ${{ github.event.head_commit.timestamp }}
-
-          ### Technical Details:
-          - Minecraft: 1.21.1
-          - Mod Loader: NeoForge 21.1.77+
-          - Pack Format: Enhanced .mrpack with mirror support"
+          RELEASE_NOTES="Survival Not Guaranteed v$CURRENT_VERSION - Automated release with latest modpack changes. Features multi-platform mod support (Modrinth + CurseForge), mirror URL redundancy, and smart mod resolution. Minecraft 1.21.1, NeoForge 21.1.180+. Download and import into Modrinth App, PrismLauncher, or other compatible launcher."
           
           # Upload current version
           MRPACK_FILE="Survival Not Guaranteed-$CURRENT_VERSION.mrpack"
