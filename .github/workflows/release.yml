@@ -477,6 +477,11 @@ jobs:
           # Create JSON data using printf to avoid heredoc issues
           printf '{"name":"Survival Not Guaranteed v%s","version_number":"%s","changelog":"%s","dependencies":[],"game_versions":["1.21.1"],"version_type":"release","loaders":["neoforge"],"featured":true,"project_id":"%s","file_parts":["mrpack-file"]}' "$version" "$version" "$escaped_changelog" "$PROJECT_ID" > /tmp/modrinth_data.json
           
+          # Debug: Show the JSON being sent
+          echo "🔍 JSON being sent to Modrinth:"
+          cat /tmp/modrinth_data.json
+          echo ""
+          
           # Upload using the JSON file
           local response=$(curl -X POST "https://api.modrinth.com/v2/version" \
             -H "Authorization: $MODRINTH_TOKEN" \
