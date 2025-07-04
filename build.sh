@@ -3,7 +3,6 @@
 # Final Multi-Platform .mrpack Builder with Comprehensive Mirror Support
 # Ensures all mods get proper download URLs from Modrinth, CurseForge, or manual overrides
 # Never includes mod files unless absolutely necessary
-# Trigger workflow test
 
 set -e
 
