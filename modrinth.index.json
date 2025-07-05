@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "game": "minecraft",
-  "versionId": "3.10.1",
+  "versionId": "3.11.0",
   "name": "Survival Not Guaranteed",
   "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
   "files": [
@@ -373,7 +373,7 @@
       },
       "env": {
         "client": "required",
-        "server": "unsupported"
+        "server": "required"
       },
       "fileSize": 943785,
       "downloads": [
@@ -388,7 +388,7 @@
       },
       "env": {
         "client": "required",
-        "server": "unsupported"
+        "server": "required"
       },
       "fileSize": 1690154,
       "downloads": [
@@ -2088,36 +2088,6 @@
       "fileSize": 812967,
       "downloads": [
         "https://cdn.modrinth.com/data/6AQIaxuO/versions/6u6CIvVn/wthit-neo-12.5.4.jar"
-      ]
-    },
-    {
-      "path": "mods/Xaeros_Minimap_25.2.6_NeoForge_1.21.jar",
-      "hashes": {
-        "sha1": "3b2d6218ece281047c18b5622ba2cbfb3780a8ba",
-        "sha512": "28372023d4476175a014f694825f5d3f291b5606261b8139b5365ab45abf87392fa2ebbd01b02ade579a870fa2105ebb8d141bb6bfa5b91c26aa1cb1fa34b919"
-      },
-      "env": {
-        "client": "required",
-        "server": "required"
-      },
-      "fileSize": 1690154,
-      "downloads": [
-        "https://cdn.modrinth.com/data/1bokaNcj/versions/jSwPt0Wh/Xaeros_Minimap_25.2.6_NeoForge_1.21.jar"
-      ]
-    },
-    {
-      "path": "mods/XaerosWorldMap_1.39.9_NeoForge_1.21.jar",
-      "hashes": {
-        "sha1": "cee176ccb1dce03b92e0d78dcbbcae963f89bb4a",
-        "sha512": "ceec5162b8d75c8883b280f1a329a7cd6f24979a5e169165b006c334de4678c3e346af6e4ec34385b2bdff2940062358986de7eca634d5763e4631511d19ebca"
-      },
-      "env": {
-        "client": "required",
-        "server": "required"
-      },
-      "fileSize": 943785,
-      "downloads": [
-        "https://cdn.modrinth.com/data/NcUtCpym/versions/Lt2vbZZU/XaerosWorldMap_1.39.9_NeoForge_1.21.jar"
       ]
     },
     {
