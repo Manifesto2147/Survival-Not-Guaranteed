@@ -1,0 +1,283 @@
+name: Development Branch CI
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'config/**'
+      - 'minecraft/mods/**'
+      - 'minecraft/config/**'
+      - 'minecraft/scripts/**'
+      - 'minecraft/shaderpacks/**'
+      - 'minecraft/resourcepacks/**'
+      - 'minecraft/servers.dat'
+      - 'scripts/**'
+      - 'shaderpacks/**'
+      - 'resourcepacks/**'
+      - 'modrinth.index.json'
+      - 'pack.toml'
+      - 'mod_overrides.conf'
+      - '.github/workflows/develop.yml'
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'config/**'
+      - 'minecraft/mods/**'
+      - 'minecraft/config/**'
+      - 'minecraft/scripts/**'
+      - 'minecraft/shaderpacks/**'
+      - 'minecraft/resourcepacks/**'
+      - 'minecraft/servers.dat'
+      - 'scripts/**'
+      - 'shaderpacks/**'
+      - 'resourcepacks/**'
+      - 'modrinth.index.json'
+      - 'pack.toml'
+      - 'mod_overrides.conf'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate and Analyze
+    runs-on: ubuntu-latest
+    outputs:
+      has-changes: ${{ steps.changes.outputs.has-changes }}
+      mod-count: ${{ steps.analyze.outputs.mod-count }}
+      config-changes: ${{ steps.analyze.outputs.config-changes }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq curl
+        
+    - name: Check for changes
+      id: changes
+      run: |
+        if git diff --quiet HEAD^ HEAD -- config minecraft scripts shaderpacks resourcepacks modrinth.index.json pack.toml mod_overrides.conf 2>/dev/null; then
+          echo "has-changes=false" >> $GITHUB_OUTPUT
+        else
+          echo "has-changes=true" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Validate JSON syntax
+      run: |
+        echo "🔍 Validating JSON files..."
+        if [[ -f "modrinth.index.json" ]]; then
+          jq empty modrinth.index.json
+          echo "✅ modrinth.index.json is valid"
+        fi
+        
+    - name: Validate manifest structure
+      run: |
+        echo "🔍 Checking manifest structure..."
+        required_fields=("formatVersion" "game" "versionId" "name" "files")
+        for field in "${required_fields[@]}"; do
+          if ! jq -e ".$field" modrinth.index.json > /dev/null 2>&1; then
+            echo "❌ Missing required field: $field"
+            exit 1
+          fi
+        done
+        echo "✅ Manifest structure is valid"
+        
+    - name: Analyze modpack
+      id: analyze
+      run: |
+        echo "📊 Analyzing modpack..."
+        
+        # Count mods
+        mod_count=$(jq '.files | length' modrinth.index.json)
+        echo "mod-count=$mod_count" >> $GITHUB_OUTPUT
+        echo "📦 Total mods: $mod_count"
+        
+        # Check for config changes
+        config_changes=$(git diff --name-only HEAD^ HEAD -- config/ minecraft/config/ || echo "")
+        if [[ -n "$config_changes" ]]; then
+          echo "config-changes=true" >> $GITHUB_OUTPUT
+          echo "⚙️ Configuration changes detected:"
+          echo "$config_changes"
+        else
+          echo "config-changes=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Check for mod conflicts
+      run: |
+        echo "🔍 Checking for potential mod conflicts..."
+        
+        # Extract mod names and check for duplicates
+        jq -r '.files[].path' modrinth.index.json | sort | uniq -d | while read -r duplicate; do
+          if [[ -n "$duplicate" ]]; then
+            echo "⚠️ Potential duplicate mod: $duplicate"
+          fi
+        done
+        
+    - name: Validate URLs
+      run: |
+        echo "🔍 Validating sample URLs..."
+        
+        # Test a few random URLs from the manifest
+        jq -r '.files[].downloads[0]' modrinth.index.json | head -5 | while read -r url; do
+          if [[ -n "$url" ]]; then
+            echo "Testing: $url"
+            if curl -s --head --request GET "$url" | head -1 | grep -q "200 OK"; then
+              echo "✅ URL accessible: $url"
+            else
+              echo "⚠️ URL may have issues: $url"
+            fi
+          fi
+        done
+
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.has-changes == 'true'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zip unzip jq
+        
+    - name: Test build script
+      run: |
+        if [[ -f "build.sh" ]]; then
+          echo "🔨 Testing build script..."
+          chmod +x build.sh
+          
+          # Test build script without actually building
+          if bash -n build.sh; then
+            echo "✅ Build script syntax is valid"
+          else
+            echo "❌ Build script has syntax errors"
+            exit 1
+          fi
+        else
+          echo "⚠️ No build.sh found, skipping build test"
+        fi
+        
+    - name: Create test package
+      run: |
+        echo "📦 Creating test package..."
+        
+        # Create a minimal test package
+        mkdir -p test-package
+        cp modrinth.index.json test-package/
+        
+        if [[ -d "config" ]]; then
+          cp -r config test-package/
+        fi
+        
+        if [[ -d "minecraft" ]]; then
+          cp -r minecraft test-package/
+        fi
+        
+        cd test-package
+        zip -r ../test-package.zip . > /dev/null 2>&1
+        cd ..
+        
+        echo "✅ Test package created successfully"
+        ls -lh test-package.zip
+
+  dependency-analysis:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.has-changes == 'true'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+        
+    - name: Analyze dependencies
+      run: |
+        echo "🔍 Analyzing mod dependencies..."
+        
+        # Extract mod information
+        jq -r '.files[] | "\(.path) | \(.env // {}) | \(.downloads[0] // "no-url")"' modrinth.index.json | head -10 | while IFS='|' read -r path env url; do
+          echo "📦 $path"
+          if [[ "$env" != "{}" ]]; then
+            echo "   Environment: $env"
+          fi
+          if [[ "$url" != "no-url" ]]; then
+            echo "   Source: $url"
+          fi
+          echo ""
+        done
+        
+    - name: Check environment compatibility
+      run: |
+        echo "🔍 Checking environment compatibility..."
+        
+        # Count client vs server mods
+        client_count=$(jq '[.files[] | select(.env.client == "required")] | length' modrinth.index.json)
+        server_count=$(jq '[.files[] | select(.env.server == "required")] | length' modrinth.index.json)
+        universal_count=$(jq '[.files[] | select(.env.client == "required" and .env.server == "required")] | length' modrinth.index.json)
+        
+        echo "📊 Environment distribution:"
+        echo "   Client-only mods: $client_count"
+        echo "   Server-only mods: $server_count"
+        echo "   Universal mods: $universal_count"
+        
+        total_mods=$(jq '.files | length' modrinth.index.json)
+        echo "   Total mods: $total_mods"
+
+  summary:
+    name: Development Summary
+    runs-on: ubuntu-latest
+    needs: [validate, build-test, dependency-analysis]
+    if: always()
+    
+    steps:
+    - name: Generate summary
+      run: |
+        echo "# 🧪 Development Branch CI Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.validate.result }}" == "success" ]]; then
+          echo "✅ **Validation**: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Validation**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.build-test.result }}" == "success" ]]; then
+          echo "✅ **Build Test**: Passed" >> $GITHUB_STEP_SUMMARY
+        elif [[ "${{ needs.build-test.result }}" == "skipped" ]]; then
+          echo "⏭️ **Build Test**: Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Build Test**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.dependency-analysis.result }}" == "success" ]]; then
+          echo "✅ **Dependency Analysis**: Passed" >> $GITHUB_STEP_SUMMARY
+        elif [[ "${{ needs.dependency-analysis.result }}" == "skipped" ]]; then
+          echo "⏭️ **Dependency Analysis**: Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Dependency Analysis**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📊 **Modpack Stats**:" >> $GITHUB_STEP_SUMMARY
+        echo "- Total mods: ${{ needs.validate.outputs.mod-count }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Configuration changes: ${{ needs.validate.outputs.config-changes }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔗 **Branch**: develop" >> $GITHUB_STEP_SUMMARY
+        echo "🚀 **Ready for merge**: $(if [[ '${{ needs.validate.result }}' == 'success' && ('${{ needs.build-test.result }}' == 'success' || '${{ needs.build-test.result }}' == 'skipped') ]]; then echo 'Yes'; else echo 'No'; fi)" >> $GITHUB_STEP_SUMMARY
