@@ -14,6 +14,7 @@ LOG_FILE="auto-update.log"
 CACHE_DIR=".modrinth_cache"
 MINECRAFT_VERSION="1.21.1"
 MODLOADER="neoforge"
+ENV_OVERRIDES_FILE="mod_env_overrides.conf"
 
 # Options
 DRY_RUN=false
@@ -68,12 +69,14 @@ Options:
   --dry-run     Show what would be updated without making changes
   --force       Force updates even if constraints might be violated
   --rollback    Rollback to the last backup
+  --validate    Validate mod files and manifest without updating
   --verbose     Enable verbose logging
   -h, --help    Show this help message
 
 Examples:
   ./update-mods.sh                    # Auto-update all safe mods
   ./update-mods.sh --dry-run          # Preview updates
+  ./update-mods.sh --validate         # Check mod file integrity
   ./update-mods.sh --rollback         # Rollback last update
 EOF
 }
@@ -89,6 +92,7 @@ create_backup() {
     # Backup manifest and key files
     cp "$MANIFEST_FILE" "$backup_path/"
     [[ -f "mod_overrides.conf" ]] && cp "mod_overrides.conf" "$backup_path/"
+    [[ -f "$ENV_OVERRIDES_FILE" ]] && cp "$ENV_OVERRIDES_FILE" "$backup_path/"
     
     # Create backup metadata
     cat > "$backup_path/metadata.json" << EOF
@@ -125,6 +129,7 @@ rollback_to_backup() {
     # Restore files
     cp "$backup_path/$MANIFEST_FILE" "$MANIFEST_FILE"
     [[ -f "$backup_path/mod_overrides.conf" ]] && cp "$backup_path/mod_overrides.conf" "mod_overrides.conf"
+    [[ -f "$backup_path/$ENV_OVERRIDES_FILE" ]] && cp "$backup_path/$ENV_OVERRIDES_FILE" "$ENV_OVERRIDES_FILE"
     
     log_success "Rollback completed"
 }
@@ -287,6 +292,12 @@ apply_updates() {
         
         log_info "Processing update: $project_id -> $latest_number"
         
+        # Check if updates should be skipped for this project
+        if should_skip_update "$project_id"; then
+            UPDATES_SKIPPED=$((UPDATES_SKIPPED + 1))
+            continue
+        fi
+        
         # Check dependency constraints unless forced
         if [[ "$FORCE_UPDATE" != true ]]; then
             if ! check_dependency_constraints "$project_id" "$latest_version"; then
@@ -328,12 +339,29 @@ apply_single_update() {
         return 1
     fi
     
+    # Calculate new mod path
+    local new_mod_path="minecraft/mods/$new_filename"
+    
+    # Download the new mod file
+    if ! download_and_validate_mod "$new_url" "$new_mod_path" "$new_size" "$new_hashes"; then
+        log_error "Failed to download new mod file for $project_id"
+        return 1
+    fi
+    
+    # Remove old mod file if it exists and is different
+    # Map manifest path to actual filesystem path
+    local actual_old_path="minecraft/${mod_path}"
+    if [[ -f "$actual_old_path" && "$actual_old_path" != "$new_mod_path" ]]; then
+        log_info "Removing old mod file: $actual_old_path"
+        rm -f "$actual_old_path"
+    fi
+    
     # Update the manifest
     local temp_manifest=$(mktemp)
     jq --arg old_url "$current_url" \
        --arg new_url "$new_url" \
        --arg old_path "$mod_path" \
-       --arg new_path "mods/$new_filename" \
+       --arg new_path "$new_mod_path" \
        --arg new_size "$new_size" \
        --argjson new_hashes "$new_hashes" \
        '
@@ -349,6 +377,9 @@ apply_single_update() {
          end
        ]
        ' "$MANIFEST_FILE" > "$temp_manifest"
+    
+    # Apply environment overrides after updating
+    apply_env_overrides "$project_id" "$temp_manifest"
     
     # Validate the updated manifest
     if jq empty "$temp_manifest" 2>/dev/null; then
@@ -394,6 +425,213 @@ validate_manifest() {
     return 0
 }
 
+# ==================== FILE VALIDATION ====================
+
+validate_mod_file() {
+    local file_path="$1"
+    local expected_size="$2"
+    local expected_hashes="$3"
+    
+    if [[ ! -f "$file_path" ]]; then
+        log_error "File does not exist: $file_path"
+        return 1
+    fi
+    
+    # Check file size
+    local actual_size=$(stat -f%z "$file_path" 2>/dev/null || stat -c%s "$file_path" 2>/dev/null)
+    if [[ -n "$expected_size" && "$actual_size" != "$expected_size" ]]; then
+        log_warning "File size mismatch for $file_path: expected $expected_size, got $actual_size"
+    fi
+    
+    # Check if file is a valid jar
+    if [[ "$file_path" == *.jar ]]; then
+        # Check if it's actually a ZIP file (resource packs and data packs might have .jar extension)
+        if file "$file_path" | grep -q "Zip archive\|ZIP archive"; then
+            # For ZIP files, just check if they can be read
+            if ! unzip -t "$file_path" >/dev/null 2>&1; then
+                log_error "Corrupted archive file: $file_path"
+                return 1
+            fi
+            
+            # Check if it's a proper mod jar (has META-INF/MANIFEST.MF) or a data/resource pack
+            if unzip -l "$file_path" 2>/dev/null | grep -q "META-INF/MANIFEST.MF"; then
+                # It's a proper mod jar
+                log_info "Mod jar validation passed: $(basename "$file_path")"
+            elif unzip -l "$file_path" 2>/dev/null | grep -q "pack.mcmeta\|data/\|assets/"; then
+                # It's a data pack or resource pack
+                log_info "Data/Resource pack validation passed: $(basename "$file_path")"
+            else
+                log_warning "Unknown jar type (but valid ZIP): $(basename "$file_path")"
+            fi
+        else
+            log_error "File has .jar extension but is not a ZIP archive: $file_path"
+            return 1
+        fi
+    fi
+    
+    # Validate file hashes if provided
+    if [[ -n "$expected_hashes" && "$expected_hashes" != "null" ]]; then
+        local sha1_hash=$(echo "$expected_hashes" | jq -r '.sha1 // empty' 2>/dev/null)
+        if [[ -n "$sha1_hash" ]]; then
+            local actual_sha1=$(shasum -a 1 "$file_path" | cut -d' ' -f1)
+            if [[ "$actual_sha1" != "$sha1_hash" ]]; then
+                log_error "SHA1 hash mismatch for $file_path"
+                log_error "Expected: $sha1_hash"
+                log_error "Actual: $actual_sha1"
+                return 1
+            fi
+        fi
+    fi
+    
+    log_info "File validation passed: $(basename "$file_path")"
+    return 0
+}
+
+download_and_validate_mod() {
+    local mod_url="$1"
+    local target_path="$2"
+    local expected_size="$3"
+    local expected_hashes="$4"
+    local max_retries=3
+    local retry_count=0
+    
+    while [[ $retry_count -lt $max_retries ]]; do
+        log_info "Downloading mod (attempt $((retry_count + 1))/$max_retries): $(basename "$target_path")"
+        
+        # Create temporary download path
+        local temp_path="${target_path}.tmp"
+        
+        # Download with retry
+        if curl -L -f -s --connect-timeout 30 --max-time 300 -o "$temp_path" "$mod_url"; then
+            # Validate downloaded file
+            if validate_mod_file "$temp_path" "$expected_size" "$expected_hashes"; then
+                # Move to final location
+                mv "$temp_path" "$target_path"
+                log_success "Successfully downloaded and validated: $(basename "$target_path")"
+                return 0
+            else
+                log_warning "Downloaded file failed validation, retrying..."
+                rm -f "$temp_path"
+            fi
+        else
+            log_warning "Download failed, retrying..."
+            rm -f "$temp_path"
+        fi
+        
+        retry_count=$((retry_count + 1))
+        sleep $((retry_count * 2))  # Exponential backoff
+    done
+    
+    log_error "Failed to download and validate mod after $max_retries attempts: $mod_url"
+    return 1
+}
+
+validate_existing_mods() {
+    log_info "Validating existing mod files..."
+    local validation_errors=0
+    local mods_dir="minecraft/mods"
+    
+    if [[ ! -d "$mods_dir" ]]; then
+        log_warning "Mods directory does not exist: $mods_dir"
+        return 0
+    fi
+    
+    # Get mod info from manifest
+    local manifest_mods=$(jq -r '
+        .files[] | 
+        select(.downloads and (.downloads | length > 0)) |
+        select(.path | startswith("mods/")) |
+        {
+            path: .path,
+            url: .downloads[0],
+            fileSize: .fileSize,
+            hashes: .hashes
+        }
+    ' "$MANIFEST_FILE" 2>/dev/null)
+    
+    echo "$manifest_mods" | jq -c '.' | while read -r mod_info; do
+        local mod_path=$(echo "$mod_info" | jq -r '.path')
+        local mod_size=$(echo "$mod_info" | jq -r '.fileSize // empty')
+        local mod_hashes=$(echo "$mod_info" | jq -r '.hashes // empty')
+        
+        # Map manifest path to actual filesystem path
+        local actual_path="minecraft/${mod_path}"
+        
+        if [[ -f "$actual_path" ]]; then
+            if ! validate_mod_file "$actual_path" "$mod_size" "$mod_hashes"; then
+                log_error "Validation failed for existing mod: $actual_path"
+                validation_errors=$((validation_errors + 1))
+            fi
+        else
+            log_warning "Missing mod file: $actual_path"
+        fi
+    done
+    
+    if [[ $validation_errors -gt 0 ]]; then
+        log_error "Found $validation_errors mod validation errors"
+        return 1
+    fi
+    
+    log_success "All existing mods validated successfully"
+    return 0
+}
+
+# ==================== DEPENDENCY CHECKS ====================
+
+check_dependencies() {
+    local missing_deps=()
+    
+    # Check for required tools
+    if ! command -v jq >/dev/null 2>&1; then
+        missing_deps+=("jq")
+    fi
+    
+    if ! command -v curl >/dev/null 2>&1; then
+        missing_deps+=("curl")
+    fi
+    
+    if ! command -v unzip >/dev/null 2>&1; then
+        missing_deps+=("unzip")
+    fi
+    
+    if ! command -v shasum >/dev/null 2>&1; then
+        missing_deps+=("shasum")
+    fi
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        log_error "Missing required dependencies: ${missing_deps[*]}"
+        log_error "Please install the missing tools and try again"
+        
+        # Provide installation hints for macOS
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            log_info "Installation hints for macOS:"
+            for dep in "${missing_deps[@]}"; do
+                case $dep in
+                    jq)
+                        log_info "  brew install jq"
+                        ;;
+                    curl)
+                        log_info "  curl should be pre-installed on macOS"
+                        ;;
+                    unzip)
+                        log_info "  unzip should be pre-installed on macOS"
+                        ;;
+                    shasum)
+                        log_info "  shasum should be pre-installed on macOS"
+                        ;;
+                esac
+            done
+        fi
+        
+        return 1
+    fi
+    
+    return 0
+}
+
+# ==================== EXISTING UTILITY FUNCTIONS ====================
+# (No changes in this section)
+
 # ==================== MAIN FUNCTION ====================
 
 main() {
@@ -412,6 +650,10 @@ main() {
                 ROLLBACK=true
                 shift
                 ;;
+            --validate)
+                VALIDATE_ONLY=true
+                shift
+                ;;
             --verbose)
                 VERBOSE=true
                 shift
@@ -428,9 +670,18 @@ main() {
         esac
     done
     
+    # Check dependencies first
+    if ! check_dependencies; then
+        log_error "Missing dependencies, cannot continue"
+        exit 1
+    fi
+    
     # Initialize
     mkdir -p "$BACKUP_DIR" "$CACHE_DIR"
     echo "$(date): Starting automatic mod update" > "$LOG_FILE"
+    
+    # Load environment overrides
+    load_env_overrides
     
     # Handle rollback
     if [[ "$ROLLBACK" == true ]]; then
@@ -442,6 +693,25 @@ main() {
     if [[ ! -f "$MANIFEST_FILE" ]]; then
         log_error "Manifest file not found: $MANIFEST_FILE"
         exit 1
+    fi
+    
+    # Handle validation-only mode
+    if [[ "$VALIDATE_ONLY" == true ]]; then
+        log_info "=== VALIDATION MODE ==="
+        log_info "Validating manifest..."
+        if ! validate_manifest; then
+            log_error "Manifest validation failed"
+            exit 1
+        fi
+        
+        log_info "Validating mod files..."
+        if ! validate_existing_mods; then
+            log_error "Mod file validation failed"
+            exit 1
+        fi
+        
+        log_success "All validation checks passed"
+        exit 0
     fi
     
     log_info "=== Automatic Mod Update System ==="
@@ -492,11 +762,12 @@ main() {
         # Auto-commit if changes were made
         if [[ "$UPDATES_APPLIED" -gt 0 ]]; then
             log_info "Auto-committing changes..."
-            git add "$MANIFEST_FILE" mod_overrides.conf 2>/dev/null || true
+            git add "$MANIFEST_FILE" mod_overrides.conf "$ENV_OVERRIDES_FILE" 2>/dev/null || true
             git commit -m "Auto-update: Applied $UPDATES_APPLIED mod updates
 
 - Updated $UPDATES_APPLIED mods
 - Skipped $UPDATES_SKIPPED updates due to constraints
+- Applied environment overrides from $ENV_OVERRIDES_FILE
 - Validated manifest and dependencies
 
 Generated by update-mods.sh" 2>/dev/null || log_warning "Git commit failed"
@@ -507,6 +778,103 @@ Generated by update-mods.sh" 2>/dev/null || log_warning "Git commit failed"
     rm -rf "$CACHE_DIR"
     
     log_success "Automatic mod update completed"
+}
+
+# ==================== ENVIRONMENT OVERRIDE FUNCTIONS ====================
+
+load_env_overrides() {
+    declare -gA ENV_OVERRIDES
+    
+    if [[ ! -f "$ENV_OVERRIDES_FILE" ]]; then
+        log_info "No environment overrides file found: $ENV_OVERRIDES_FILE"
+        return 0
+    fi
+    
+    log_info "Loading environment overrides from: $ENV_OVERRIDES_FILE"
+    
+    # Parse override file
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${line// }" ]] && continue
+        
+        # Parse project_id:property:value format
+        if [[ "$line" =~ ^([^:]+):([^:]+):(.+)$ ]]; then
+            local project_id="${BASH_REMATCH[1]}"
+            local property="${BASH_REMATCH[2]}"
+            local value="${BASH_REMATCH[3]}"
+            
+            ENV_OVERRIDES["$project_id:$property"]="$value"
+            
+            if [[ "$VERBOSE" == true ]]; then
+                log_info "Loaded override: $project_id.$property = $value"
+            fi
+        fi
+    done < "$ENV_OVERRIDES_FILE"
+    
+    local override_count=${#ENV_OVERRIDES[@]}
+    log_info "Loaded $override_count environment overrides"
+}
+
+apply_env_overrides() {
+    local project_id="$1"
+    local temp_manifest="$2"
+    
+    # Check if there are any overrides for this project
+    local has_overrides=false
+    for key in "${!ENV_OVERRIDES[@]}"; do
+        if [[ "$key" == "$project_id:"* ]]; then
+            has_overrides=true
+            break
+        fi
+    done
+    
+    if [[ "$has_overrides" == false ]]; then
+        return 0
+    fi
+    
+    log_info "Applying environment overrides for project: $project_id"
+    
+    # Create a temporary file for jq processing
+    local jq_filters=()
+    
+    # Check for env.client override
+    if [[ -n "${ENV_OVERRIDES["$project_id:env.client"]:-}" ]]; then
+        local client_value="${ENV_OVERRIDES["$project_id:env.client"]}"
+        jq_filters+=("(.files[] | select(.downloads[0] | contains(\"$project_id\")) | .env.client) = \"$client_value\"")
+        log_info "Override: $project_id env.client = $client_value"
+    fi
+    
+    # Check for env.server override
+    if [[ -n "${ENV_OVERRIDES["$project_id:env.server"]:-}" ]]; then
+        local server_value="${ENV_OVERRIDES["$project_id:env.server"]}"
+        jq_filters+=("(.files[] | select(.downloads[0] | contains(\"$project_id\")) | .env.server) = \"$server_value\"")
+        log_info "Override: $project_id env.server = $server_value"
+    fi
+    
+    # Apply all filters
+    if [[ ${#jq_filters[@]} -gt 0 ]]; then
+        local filter_string=$(IFS=' | '; echo "${jq_filters[*]}")
+        jq "$filter_string" "$temp_manifest" > "${temp_manifest}.tmp" && mv "${temp_manifest}.tmp" "$temp_manifest"
+    fi
+}
+
+should_skip_update() {
+    local project_id="$1"
+    
+    # Check if updates are disabled for this project
+    if [[ "${ENV_OVERRIDES["$project_id:skip_updates"]:-}" == "true" ]]; then
+        log_info "Skipping update for $project_id (skip_updates override)"
+        return 0  # Should skip
+    fi
+    
+    # Check if version is pinned
+    if [[ -n "${ENV_OVERRIDES["$project_id:pin_version"]:-}" ]]; then
+        log_info "Skipping update for $project_id (pinned version override)"
+        return 0  # Should skip
+    fi
+    
+    return 1  # Should not skip
 }
 
 # Run main function
