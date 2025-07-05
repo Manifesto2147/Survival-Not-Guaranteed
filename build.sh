@@ -181,7 +181,7 @@ CLIENT_ONLY_MODS=(
     "top_addons" "hwyla_addons" "jade_addons" "waila_plugins" "mod_list" "mod_updates"
     
     # Specific Mod Names (from your pack)
-    "appleskin" "jei" "xaeros_minimap" "xaeros_worldmap" "iris" "sodium" "ambient_sounds"
+    "appleskin" "jei" "iris" "sodium" "ambient_sounds"
     "sound_physics" "sounds" "armor_hud" "gui_clock" "ctgui" "armorstatues" "healthy_sleep"
 )
 
@@ -338,7 +338,7 @@ get_manual_override() {
 
 # Manual overrides for mods that can't be correctly detected via filename->slug matching
 # Format: "filename_pattern" -> "environment"
-# Environment options: "client_only", "server_only", "both"
+# Environment options: "client_only", "server_only", "both", "client_required_server_optional"
 
 # Manual overrides for mods that can't be correctly detected via filename->slug matching
 # Format: check if override exists using a function instead of associative array
@@ -368,6 +368,16 @@ get_manual_environment_override() {
         return
     fi
     if [[ "$mod_name" == *"ec_isasb_plugin"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    # Xaero's mods - work on both client and server
+    if [[ "$mod_name" == *"xaeros_minimap"* ]] || [[ "$mod_name" == *"xaero"* && "$mod_name" == *"minimap"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"xaeros_worldmap"* ]] || [[ "$mod_name" == *"xaero"* && "$mod_name" == *"worldmap"* ]]; then
         echo "both"
         return
     fi
@@ -1044,6 +1054,9 @@ generate_manifest() {
       "both")
         UNIVERSAL_MODS=$((UNIVERSAL_MODS + 1))
         ;;
+      "client_required_server_optional")
+        UNIVERSAL_MODS=$((UNIVERSAL_MODS + 1))  # Count as universal for stats
+        ;;
     esac
     
     # Check for failed lookups in strict mode
@@ -1088,6 +1101,16 @@ generate_manifest() {
         client_env="required"
         server_env="required"
         echo "  → Universal mod (client + server)"
+        ;;
+      "client_required_server_optional")
+        client_env="required"
+        server_env="optional"
+        echo "  → Client-required, server-optional mod detected"
+        ;;
+      *)
+        client_env="required"
+        server_env="required"
+        echo "  → Default: Universal mod (client + server)"
         ;;
     esac
     

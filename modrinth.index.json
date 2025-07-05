@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "game": "minecraft",
-  "versionId": "3.10.0",
+  "versionId": "3.10.1",
   "name": "Survival Not Guaranteed",
   "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
   "files": [
@@ -2053,7 +2053,7 @@
       },
       "env": {
         "client": "required",
-        "server": "unsupported"
+        "server": "required"
       },
       "fileSize": 1690154,
       "downloads": [
@@ -2068,7 +2068,7 @@
       },
       "env": {
         "client": "required",
-        "server": "unsupported"
+        "server": "required"
       },
       "fileSize": 943785,
       "downloads": [
