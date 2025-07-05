@@ -4,6 +4,30 @@
 
 Welcome to a world that blends unforgiving survival mechanics with epic magic, deadly monsters, and vast dungeon-filled landscapes. This modpack transforms Minecraft into a harsh fantasy realm where every step tests your preparation, skill, and courage.
 
+---
+
+## 🛠️ Automated Mod Management System
+
+This modpack includes a comprehensive automated mod management system with the following features:
+
+- **🔄 Automated Updates**: Fully automated mod updates with dependency resolution
+- **🛡️ Safe Operations**: Backup and rollback capabilities for all operations
+- **🧠 Constraint Resolution**: Intelligent dependency constraint solving
+- **📊 Dependency Validation**: Comprehensive dependency checking
+- **🎯 Zero Intervention**: Completely automated workflow requiring no manual steps
+
+### Quick Management Commands
+
+```bash
+./update-mods.sh --auto        # Fully automated updates
+./validate-dependencies.sh     # Validate all dependencies
+./manage-mods.sh              # High-level management
+```
+
+**For detailed management documentation, see [MOD_MANAGEMENT.md](MOD_MANAGEMENT.md)**
+
+---
+
 ## What Awaits You
 
 ### Unforgiving Survival

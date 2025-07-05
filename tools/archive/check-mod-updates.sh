@@ -223,9 +223,15 @@ build_dependency_graph() {
     print_status "Dependency graph saved to $DEPENDENCY_CACHE"
 }
 
-# Check for updates
-check_updates() {
-    print_info "Checking for mod updates..."
+# Check for updates with constraint awareness
+check_updates_with_constraints() {
+    print_info "Checking for mod updates with dependency constraints..."
+    
+    # First, run constraint resolution
+    if [[ -f "resolve-dependency-constraints.sh" ]]; then
+        print_info "Running dependency constraint resolution..."
+        ./resolve-dependency-constraints.sh resolve
+    fi
     
     local updates="[]"
     
@@ -246,6 +252,40 @@ check_updates() {
             # Extract current version from filename
             local current_version=$(echo "$mod_name" | sed -E 's/.*-([0-9]+\.[0-9]+(\.[0-9]+)?).*/\1/')
             
+            # Check if this is a dependency mod
+            local is_dependency=false
+            if [[ -f "resolution_report.json" ]]; then
+                local recommended_version=$(jq -r --arg mod "$mod_name" '.resolutions[] | select(.dependency == $mod) | .recommended_version // empty' "resolution_report.json")
+                if [[ -n "$recommended_version" ]]; then
+                    is_dependency=true
+                    print_constraint "Dependency mod detected: $mod_name, recommended version: $recommended_version"
+                    
+                    # Use constraint-recommended version instead of latest
+                    local update_info=$(jq -n \
+                        --arg project_id "$project_id" \
+                        --arg current_version "$current_version" \
+                        --arg latest_version "$recommended_version" \
+                        --arg latest_version_id "constraint-recommended" \
+                        --arg latest_date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                        --argjson dependencies "[]" \
+                        '{
+                            project_id: $project_id,
+                            current_version: $current_version,
+                            latest_version: $latest_version,
+                            latest_version_id: $latest_version_id,
+                            latest_date: $latest_date,
+                            dependencies: $dependencies,
+                            has_update: ($current_version != $latest_version),
+                            platform: "modrinth",
+                            constraint_recommended: true
+                        }')
+                    
+                    updates=$(echo "$updates" | jq --argjson update "$update_info" '. + [$update]')
+                    continue
+                fi
+            fi
+            
+            # Regular update check for non-dependency mods
             local update_info=$(check_modrinth_updates "$project_id" "$current_version")
             
             if [[ -n "$update_info" ]]; then
@@ -263,7 +303,7 @@ check_updates() {
     done
     
     echo "$updates" > "$UPDATE_REPORT"
-    print_status "Update report saved to $UPDATE_REPORT"
+    print_status "Constraint-aware update report saved to $UPDATE_REPORT"
 }
 
 # Analyze update safety
@@ -404,7 +444,7 @@ main() {
             check_dependencies
             extract_mod_info
             build_dependency_graph
-            check_updates
+            check_updates_with_constraints
             analyze_update_safety
             generate_recommendations
             ;;
@@ -416,7 +456,7 @@ main() {
         "updates")
             check_dependencies
             extract_mod_info
-            check_updates
+            check_updates_with_constraints
             ;;
         "analyze")
             analyze_update_safety

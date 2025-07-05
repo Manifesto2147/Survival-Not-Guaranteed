@@ -178,9 +178,9 @@ apply_mod_update() {
     fi
 }
 
-# Apply safe updates
-apply_safe_updates() {
-    print_info "Applying safe updates..."
+# Apply constraint-aware updates
+apply_constraint_aware_updates() {
+    print_info "Applying constraint-aware updates..."
     
     if ! validate_update_report; then
         return 1
@@ -191,40 +191,76 @@ apply_safe_updates() {
     local applied_updates="[]"
     local failed_updates="[]"
     
-    # Get safe updates from report
-    local safe_updates=$(cat "$UPDATE_REPORT" | jq -r '.[] | select(.has_update == true and (.risk_level == "low" or .risk_level == null)) | @base64')
+    # First, apply dependency updates in the correct order
+    local dependency_updates=$(cat "$UPDATE_REPORT" | jq -r '.[] | select(.constraint_recommended == true) | @base64')
     
-    if [[ -z "$safe_updates" ]]; then
-        print_warning "No safe updates available"
-        return 0
+    if [[ -n "$dependency_updates" ]]; then
+        print_info "Applying dependency updates first..."
+        
+        echo "$dependency_updates" | while read -r update_data; do
+            if [[ -z "$update_data" ]]; then
+                continue
+            fi
+            
+            local update_info=$(echo "$update_data" | base64 -d)
+            local project_id=$(echo "$update_info" | jq -r '.project_id')
+            local current_version=$(echo "$update_info" | jq -r '.current_version')
+            local latest_version=$(echo "$update_info" | jq -r '.latest_version')
+            local latest_version_id=$(echo "$update_info" | jq -r '.latest_version_id')
+            
+            print_constraint "Applying constraint-recommended update: $project_id $current_version → $latest_version"
+            
+            # For constraint-recommended updates, we need to get the actual version ID
+            if [[ "$latest_version_id" == "constraint-recommended" ]]; then
+                # Get the actual version ID from Modrinth
+                local actual_version_id=$(curl -s "https://api.modrinth.com/v2/project/$project_id/version?loaders=[%22neoforge%22]&game_versions=[%22$MINECRAFT_VERSION%22]" | jq -r --arg ver "$latest_version" '.[] | select(.version_number == $ver) | .id // empty')
+                
+                if [[ -n "$actual_version_id" ]]; then
+                    latest_version_id="$actual_version_id"
+                else
+                    print_warning "Could not find version ID for $project_id version $latest_version"
+                    continue
+                fi
+            fi
+            
+            if apply_mod_update "$project_id" "$current_version" "$latest_version" "$latest_version_id"; then
+                applied_updates=$(echo "$applied_updates" | jq --argjson update "$update_info" '. + [$update]')
+                print_status "Successfully applied constraint update for $project_id"
+            else
+                failed_updates=$(echo "$failed_updates" | jq --argjson update "$update_info" '. + [$update]')
+                print_error "Failed to apply constraint update for $project_id"
+            fi
+        done
     fi
     
-    local total_updates=$(echo "$safe_updates" | wc -l)
-    local current_update=0
+    # Then apply regular safe updates
+    local safe_updates=$(cat "$UPDATE_REPORT" | jq -r '.[] | select(.has_update == true and (.risk_level == "low" or .risk_level == null) and (.constraint_recommended != true)) | @base64')
     
-    echo "$safe_updates" | while read -r update_data; do
-        if [[ -z "$update_data" ]]; then
-            continue
-        fi
+    if [[ -n "$safe_updates" ]]; then
+        print_info "Applying regular safe updates..."
         
-        current_update=$((current_update + 1))
-        
-        local update_info=$(echo "$update_data" | base64 -d)
-        local project_id=$(echo "$update_info" | jq -r '.project_id')
-        local current_version=$(echo "$update_info" | jq -r '.current_version')
-        local latest_version=$(echo "$update_info" | jq -r '.latest_version')
-        local latest_version_id=$(echo "$update_info" | jq -r '.latest_version_id')
-        
-        print_info "[$current_update/$total_updates] Processing $project_id..."
-        
-        if apply_mod_update "$project_id" "$current_version" "$latest_version" "$latest_version_id"; then
-            applied_updates=$(echo "$applied_updates" | jq --argjson update "$update_info" '. + [$update]')
-            print_status "Successfully updated $project_id"
-        else
-            failed_updates=$(echo "$failed_updates" | jq --argjson update "$update_info" '. + [$update]')
-            print_error "Failed to update $project_id"
-        fi
-    done
+        echo "$safe_updates" | while read -r update_data; do
+            if [[ -z "$update_data" ]]; then
+                continue
+            fi
+            
+            local update_info=$(echo "$update_data" | base64 -d)
+            local project_id=$(echo "$update_info" | jq -r '.project_id')
+            local current_version=$(echo "$update_info" | jq -r '.current_version')
+            local latest_version=$(echo "$update_info" | jq -r '.latest_version')
+            local latest_version_id=$(echo "$update_info" | jq -r '.latest_version_id')
+            
+            print_info "Applying safe update: $project_id $current_version → $latest_version"
+            
+            if apply_mod_update "$project_id" "$current_version" "$latest_version" "$latest_version_id"; then
+                applied_updates=$(echo "$applied_updates" | jq --argjson update "$update_info" '. + [$update]')
+                print_status "Successfully applied safe update for $project_id"
+            else
+                failed_updates=$(echo "$failed_updates" | jq --argjson update "$update_info" '. + [$update]')
+                print_error "Failed to apply safe update for $project_id"
+            fi
+        done
+    fi
     
     # Save applied updates log
     local update_log=$(jq -n \
@@ -237,9 +273,12 @@ apply_safe_updates() {
             backup_directory: $backup_dir,
             applied_updates: $applied,
             failed_updates: $failed,
+            constraint_aware: true,
             summary: {
                 applied_count: ($applied | length),
-                failed_count: ($failed | length)
+                failed_count: ($failed | length),
+                dependency_updates: ($applied | map(select(.constraint_recommended == true)) | length),
+                regular_updates: ($applied | map(select(.constraint_recommended != true)) | length)
             }
         }')
     
@@ -247,20 +286,24 @@ apply_safe_updates() {
     
     local applied_count=$(echo "$applied_updates" | jq 'length')
     local failed_count=$(echo "$failed_updates" | jq 'length')
+    local dependency_count=$(echo "$applied_updates" | jq 'map(select(.constraint_recommended == true)) | length')
+    local regular_count=$(echo "$applied_updates" | jq 'map(select(.constraint_recommended != true)) | length')
     
     echo ""
-    echo "📊 Update Summary:"
-    echo "   ✅ Applied: $applied_count"
+    echo "📊 Constraint-Aware Update Summary:"
+    echo "   🔗 Dependency updates: $dependency_count"
+    echo "   📦 Regular updates: $regular_count"
+    echo "   ✅ Total applied: $applied_count"
     echo "   ❌ Failed: $failed_count"
     echo "   💾 Backup: $BACKUP_DIR"
     echo "   📋 Log: $APPLIED_UPDATES"
     
     if [[ "$applied_count" -gt 0 ]]; then
-        print_status "Updates applied successfully!"
+        print_status "Constraint-aware updates applied successfully!"
         print_info "Next steps:"
-        echo "   1. Run './test-develop.sh' to validate changes"
-        echo "   2. Test the pack in PrismLauncher"
-        echo "   3. Commit changes if everything works"
+        echo "   1. Run './validate-dependencies.sh' to verify constraints"
+        echo "   2. Run './test-develop.sh' to validate pack integrity"
+        echo "   3. Test the pack in PrismLauncher"
         echo "   4. Use 'restore $BACKUP_DIR' if issues occur"
     fi
 }
@@ -389,7 +432,7 @@ show_help() {
 main() {
     case "${1:-help}" in
         "safe")
-            apply_safe_updates
+            apply_constraint_aware_updates
             ;;
         "update")
             if [[ -z "$2" ]]; then
