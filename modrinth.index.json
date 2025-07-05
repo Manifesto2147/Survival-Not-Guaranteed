@@ -771,21 +771,6 @@
       ]
     },
     {
-      "path": "mods/curios-neoforge-9.0.15+1.21.1.jar",
-      "hashes": {
-        "sha1": "0b05c0662b08e7541b1e303d6cd214dee56fed0f",
-        "sha512": "9921b5be8da8edd236262e2419826e784fe3741f9d98e861a5f2a783bdc279d86b6fcec4fcb6ed9b7af7cb71cfd2d9ae588cc628a1d4fd81a8508c082e8540b5"
-      },
-      "env": {
-        "client": "required",
-        "server": "required"
-      },
-      "fileSize": 370972,
-      "downloads": [
-        "https://cdn.modrinth.com/data/BaqCltvf/versions/WnSvqCaY/curios-neoforge-9.0.15%2B1.21.1.jar"
-      ]
-    },
-    {
       "path": "mods/curios-neoforge-9.5.1+1.21.1.jar",
       "hashes": {
         "sha1": "418fcd42e3a7844c9bdc71c9b6401fdb3894e0c4",
