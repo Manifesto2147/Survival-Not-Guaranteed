@@ -40,7 +40,6 @@ init_known_dependencies() {
     "balm",
     "cloth-config",
     "architectury",
-    "forge-config-api-port",
     "collective"
   ],
   "dependency_relationships": {
@@ -122,7 +121,7 @@ get_mod_list() {
     # Extract mod names from file paths
     jq -r '.files[].path' "$MANIFEST_FILE" | while read -r mod_path; do
         # Extract mod name from path and remove version/extension
-        mod_name=$(basename "$mod_path" .jar | sed -E 's/-[0-9]+\.[0-9]+(\.[0-9]+)?.*$//' | tr '[:upper:]' '[:lower:]')
+        mod_name=$(basename "$mod_path" .jar | tr '[:upper:]' '[:lower:]')
         echo "$mod_name"
     done | sort -u
 }
