@@ -103,7 +103,7 @@
       },
       "env": {
         "client": "required",
-        "server": "required"
+        "server": "unsupported"
       },
       "fileSize": 23056,
       "downloads": [
@@ -207,7 +207,7 @@
         "sha512": "c1756365b28d4c6c62416f0332a0e2d591142ae9ea5e5c1e0ae640eb9ae172565c08ef6c11e29c062f4db78a3dd187dba6837fbca1e0f38e12a2b4e48ec5ed88"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 92698,
@@ -718,7 +718,7 @@
       },
       "env": {
         "client": "required",
-        "server": "unsupported"
+        "server": "required"
       },
       "fileSize": 1206816,
       "downloads": [
@@ -837,7 +837,7 @@
         "sha512": "970968c358f5fcd43d06f29711d10960108bbbdcd1c76aa4ff2d216d0f4029ab50c2ad0b8b6d8a3f31934a0362fcdc04ae844f1d169edd8a8a34620296f86f28"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 945778,
@@ -852,7 +852,7 @@
         "sha512": "7cf39c892417940f8d4dc4efd9ac4ec42af9e8d4ab443356766898ed1a8d4af76cacb4accb1a2c86da536e97263db366e3270fc83b19a63f46a329812c7a1b5e"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 870482,
@@ -867,7 +867,7 @@
         "sha512": "f2a8db626b0a856aded8ef9fc3abc29bae18a879ddb9c3f13b405c080e7f6ff8f6c38859b165ff4b9d89dc20379b26173996f910855b2ee2dacdecf4aac820e9"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 2506018,
@@ -882,7 +882,7 @@
         "sha512": "d2fcac25cda8bcc5f925516f94525651276d5f353e34d3762b6f07407c8ae98ad41c1d6459d5091dbd7901e5eeb8929b13c6931a5ff282ee359b0115f99b13c9"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 510766,
@@ -897,7 +897,7 @@
         "sha512": "f4a391c76f29b4bb4f10c18882ff085ce518bc936fbd01c7ca406267788bc70591c0b1ed53f26b3b77dbf746b17a45b6eccf3092d9eb2024b0a8de0b463c9bfc"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 1774665,
@@ -912,7 +912,7 @@
         "sha512": "aabae342dc96074464c1b0672d99efdb13fb79cfcb0c6b9cfee474207505cca0bb8924a85014391736f6a9c65fbc470a6e8999ca775c024b4905b5874042d559"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 1282124,
@@ -927,7 +927,7 @@
         "sha512": "39a70d5a1b4f18c782dee0e0193be966d7c5b2de78c4c3241450caacf7a11372303c4bfa8cf7fa01dd432cba5f9eb8d4fd60d5fa8adf27500ed49017941f1c1c"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 3128192,
@@ -942,7 +942,7 @@
         "sha512": "83069dc336bcc212059f753923373d9522aa5953bf4b4fe2a8cfa666b4e28d2d017daa66c4b35e315c3be8d1ad60c2872879dd47cc1f47665ebbfd102da76976"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 24859622,
@@ -957,7 +957,7 @@
         "sha512": "3cf6db9880c73281aae73640c414b88d08a9f33658fd6db772bf4f56b9327696bee5850b1fcce092893a575f81b2a6a6817ad34587a3bd32e83f55b2eca30619"
       },
       "env": {
-        "client": "required",
+        "client": "unsupported",
         "server": "required"
       },
       "fileSize": 4687725,
@@ -1363,7 +1363,7 @@
       },
       "env": {
         "client": "required",
-        "server": "unsupported"
+        "server": "required"
       },
       "fileSize": 1450209,
       "downloads": [
@@ -1438,7 +1438,7 @@
       },
       "env": {
         "client": "required",
-        "server": "required"
+        "server": "unsupported"
       },
       "fileSize": 620766,
       "downloads": [
@@ -1707,7 +1707,7 @@
         "sha512": "83a97eca3da73d713da8e07da62e8c73fd573d4b73d60fe2e714ef73dd8d00fc737b34c8c253d5e0997708349af33e73d64b71b26791a52a5d9700b2c87ab49d"
       },
       "env": {
-        "client": "unsupported",
+        "client": "required",
         "server": "required"
       },
       "fileSize": 1076281,
@@ -1873,7 +1873,7 @@
       },
       "env": {
         "client": "required",
-        "server": "required"
+        "server": "unsupported"
       },
       "fileSize": 199964,
       "downloads": [
@@ -1902,8 +1902,8 @@
         "sha512": "d42f489caa0142266839ba5ecece697aa2ba2718a5f6f0bb1533799bcb6b4f33dcce11b358e2ffeef4833f069d013bb5f31d70dbe3cd3fda4893c923a9291505"
       },
       "env": {
-        "client": "unsupported",
-        "server": "required"
+        "client": "required",
+        "server": "unsupported"
       },
       "fileSize": 282620,
       "downloads": [
@@ -2112,7 +2112,7 @@
         "sha512": "bd0bbbc8563117bc817b0d40ee345928713ac93976e34e4947472e57d3c6bad307cb56881e6772c3712cf3afed9577604c100fa9ccf22255896b703f44ec003b"
       },
       "env": {
-        "client": "unsupported",
+        "client": "required",
         "server": "required"
       },
       "fileSize": 1111051,

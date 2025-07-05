@@ -39,6 +39,96 @@ SERVER_ONLY_MODS=0
 UNIVERSAL_MODS=0
 FAILED_LOOKUPS=()
 
+# ==================== MODRINTH API ENVIRONMENT DETECTION ====================
+
+# Cache directory for API responses
+CACHE_DIR=".modrinth_cache"
+mkdir -p "$CACHE_DIR"
+
+# Function to get mod compatibility from Modrinth API
+get_modrinth_compatibility() {
+    local mod_slug="$1"
+    local cache_file="$CACHE_DIR/${mod_slug}.json"
+    
+    # Check cache first (24 hour expiration)
+    if [[ -f "$cache_file" && $(find "$cache_file" -mtime -1 2>/dev/null) ]]; then
+        cat "$cache_file"
+        return
+    fi
+    
+    # Fetch from API
+    local response=$(curl -s "https://api.modrinth.com/v2/project/$mod_slug" 2>/dev/null || echo "")
+    
+    if [[ -n "$response" && $(echo "$response" | jq -e '.client_side' 2>/dev/null) ]]; then
+        echo "$response" > "$cache_file"
+        echo "$response"
+    else
+        echo ""
+    fi
+}
+
+# Function to determine mod environment using Modrinth API
+get_mod_environment_from_api() {
+    local mod_file="$1"
+    local mod_name=$(basename "$mod_file" .jar | tr '[:upper:]' '[:lower:]')
+    
+    # Extract the core mod name from complex filenames
+    # This handles patterns like: ModName_NEOFORGE_v1.2.3_mc1.21.1.jar -> modname
+    local core_name=$(echo "$mod_name" | sed 's/[-_].*$//' | sed 's/[^a-z0-9]//g')
+    
+    # Also try some common variations
+    local potential_slugs=(
+        "$core_name"
+        "$mod_name"
+        "${mod_name//_/-}"
+        "${mod_name//-/_}"
+        "${mod_name//[^a-z0-9]/-}"
+        "${mod_name//[^a-z0-9]/_}"
+        "${core_name}-mod"
+        "${core_name}mod"
+        "${core_name/core/}"
+        "${core_name}core"
+    )
+    
+    # Remove duplicates and empty entries
+    local unique_slugs=($(printf '%s\n' "${potential_slugs[@]}" | sort -u | grep -v '^$'))
+    
+    for slug in "${unique_slugs[@]}"; do
+        local api_data=$(get_modrinth_compatibility "$slug")
+        if [[ -n "$api_data" ]]; then
+            local client_side=$(echo "$api_data" | jq -r '.client_side // "unknown"')
+            local server_side=$(echo "$api_data" | jq -r '.server_side // "unknown"')
+            
+            # Determine environment based on API response
+            if [[ "$client_side" == "required" && "$server_side" == "unsupported" ]]; then
+                echo "client"
+                return
+            elif [[ "$client_side" == "unsupported" && "$server_side" == "required" ]]; then
+                echo "server"
+                return
+            elif [[ "$client_side" == "required" && "$server_side" == "required" ]]; then
+                echo "both"
+                return
+            elif [[ "$client_side" == "optional" && "$server_side" == "unsupported" ]]; then
+                echo "client"
+                return
+            elif [[ "$client_side" == "unsupported" && "$server_side" == "optional" ]]; then
+                echo "server"
+                return
+            elif [[ "$client_side" == "optional" && "$server_side" == "optional" ]]; then
+                echo "both"
+                return
+            else
+                echo "both"  # Default to both if unclear
+                return
+            fi
+        fi
+    done
+    
+    # Fallback to pattern-based detection if API fails
+    echo "unknown"
+}
+
 # ==================== CLIENT/SERVER ENVIRONMENT DETECTION ====================
 
 # Define client-only mods that should never be installed on servers
@@ -143,12 +233,31 @@ is_server_only_mod() {
 get_mod_environment() {
     local filename="$1"
     
-    if is_client_only_mod "$filename"; then
+    # First check manual overrides (highest priority)
+    local manual_override=$(get_manual_environment_override "$filename")
+    if [[ -n "$manual_override" ]]; then
+        echo "$manual_override"
+        return
+    fi
+    
+    # Then try to get accurate data from Modrinth API
+    local api_result=$(get_mod_environment_from_api "$filename")
+    
+    if [[ "$api_result" == "client" ]]; then
         echo "client_only"
-    elif is_server_only_mod "$filename"; then
+    elif [[ "$api_result" == "server" ]]; then
         echo "server_only"
-    else
+    elif [[ "$api_result" == "both" ]]; then
         echo "both"
+    else
+        # Fallback to pattern-based detection if API fails
+        if is_client_only_mod "$filename"; then
+            echo "client_only"
+        elif is_server_only_mod "$filename"; then
+            echo "server_only"
+        else
+            echo "both"
+        fi
     fi
 }
 
@@ -223,6 +332,124 @@ get_manual_override() {
   fi
   
   return 1
+}
+
+# ==================== MANUAL ENVIRONMENT OVERRIDES ====================
+
+# Manual overrides for mods that can't be correctly detected via filename->slug matching
+# Format: "filename_pattern" -> "environment"
+# Environment options: "client_only", "server_only", "both"
+
+# Manual overrides for mods that can't be correctly detected via filename->slug matching
+# Format: check if override exists using a function instead of associative array
+
+# Function to check manual environment overrides
+get_manual_environment_override() {
+    local filename="$1"
+    local mod_name=$(basename "$filename" .jar | tr '[:upper:]' '[:lower:]')
+    
+    # Samurai Dynasty - correct slug is "epic-samurais", not "samurai"
+    if [[ "$mod_name" == *"samurai_dynasty"* ]] || [[ "$mod_name" == *"samurai-dynasty"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    # EC plugins that depend on universal mods
+    if [[ "$mod_name" == *"ec_es_plugin"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"ec_ars_plugin"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"ec_lec_plugin"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"ec_isasb_plugin"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    # Known universal mods that might be misclassified
+    if [[ "$mod_name" == *"creativecore"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"waystones"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    # Known client-only mods
+    if [[ "$mod_name" == *"appleskin"* ]]; then
+        echo "client_only"
+        return
+    fi
+    if [[ "$mod_name" == *"mouse_wheelie"* ]]; then
+        echo "client_only"
+        return
+    fi
+    if [[ "$mod_name" == *"inventory_hud"* ]]; then
+        echo "client_only"
+        return
+    fi
+    
+    # YDM's Weapon Master - From v4.1.0+ the client-only and multiplayer versions are merged
+    # This mod requires both client and server since it uses networking channels
+    if [[ "$mod_name" == *"weaponmaster"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    # Essential library mods that must be available to both client and server
+    if [[ "$mod_name" == *"bookshelf"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"balm"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"architectury"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"cloth_config"* ]] || [[ "$mod_name" == *"cloth-config"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"geckolib"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"moonlight"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"puzzleslib"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"collective"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"coroutil"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"ferritecore"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"kotlinforforge"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    echo ""
 }
 
 # ==================== VERSION DETECTION ====================
@@ -774,6 +1001,9 @@ generate_manifest() {
     
     echo "- Processing: $filename"
     
+    # Determine environment settings early
+    local mod_env=$(get_mod_environment "$filename")
+    
     # Lookup mod with smart update support
     local lookup_result=$(smart_mod_lookup "$mod_file")
     local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
@@ -835,10 +1065,11 @@ generate_manifest() {
       actual_sha512=$(calculate_sha512 "$mod_file")
       actual_size="$updated_size"
       echo "  - Updated to: $actual_filename"
+      # Update environment for the new filename
+      mod_env=$(get_mod_environment "$actual_filename")
     fi
     
-    # Determine environment settings
-    local mod_env=$(get_mod_environment "$actual_filename")
+    # Set environment variables based on mod_env
     local client_env="required"
     local server_env="required"
     
@@ -925,6 +1156,9 @@ create_mrpack() {
   
   local pack_name="$PROJECT_NAME-$CURRENT_VERSION.mrpack"
   local temp_dir="temp_pack"
+  
+  # Clean up any existing .mrpack files for this version
+  rm -f "$pack_name" 2>/dev/null || true
   
   # Clean and create temp directory
   rm -rf "$temp_dir"
@@ -1283,6 +1517,12 @@ main() {
   echo "Final .mrpack Builder"
   echo "========================"
   echo ""
+  
+  # Clean up old files to ensure fresh build
+  echo "- Cleaning up old build artifacts..."
+  rm -f modrinth.index.json 2>/dev/null || true
+  rm -f *.mrpack 2>/dev/null || true
+  rm -f CHANGELOG.md 2>/dev/null || true
   
   # Detect version
   get_latest_version

@@ -1,0 +1,801 @@
+quiverHudAnchor = "LEFT_OF_HOTBAR"
+quiverHudXAdjustment = -40
+quiverHudYAdjustment = -23
+enableArrows = true
+enableFletchingTable = true
+enableBows = true
+enableCrossbows = true
+enableGauntlets = true
+enableQuivers = true
+enableShields = true
+enableWeapons = true
+enableSouls = true
+
+[shieldProtectionConfig]
+EnableVanillaStyleShieldProtection = false
+EnableShieldBaseProtection = true
+shieldBaseProtectionType = "DURABILITY_PERCENTAGE"
+EnableShieldProtectionPercentage = true
+
+[enchantmentLevels]
+maxKnockbackResistanceLevel = 4
+maxGroundSlamLevel = 6
+baseHammerSlamLevel = 2
+maxBlockingLevel = 5
+baseKatanaArrowBlocks = 2
+maxAgilityLevel = 2
+
+[battlestaff]
+durabilityMultiplier = 0.9
+baseAttackDamage = -2
+attackSpeed = -1.4
+mendingBonus = 0.1
+knockback = 1.0
+attackRange = 1.5
+gripType = "TWOHANDED"
+
+[broadsword]
+durabilityMultiplier = 1.1
+baseAttackDamage = 3
+attackSpeed = -3.0
+mendingBonus = 0.0
+knockback = 0.0
+attackRange = 0.5
+gripType = "ONEHANDED"
+
+[claymore]
+durabilityMultiplier = 1.1
+baseAttackDamage = 2
+attackSpeed = -3.0
+mendingBonus = 0.0
+knockback = 0.0
+attackRange = 1.0
+gripType = "TWOHANDED"
+
+[cutlass]
+durabilityMultiplier = 1.0
+baseAttackDamage = 0
+attackSpeed = -2.2
+mendingBonus = 0.2
+knockback = 0.0
+attackRange = 0.0
+gripType = "ONEHANDED"
+
+[dagger]
+durabilityMultiplier = 0.75
+baseAttackDamage = -1
+attackSpeed = -1.2
+mendingBonus = 0.1
+knockback = 0.0
+attackRange = 0.0
+gripType = "DUALWIELD"
+
+[dancers_sword]
+durabilityMultiplier = 1.3
+baseAttackDamage = 2
+attackSpeed = -1.8
+mendingBonus = 0.2
+knockback = 0.0
+attackRange = 0.0
+gripType = "ONEHANDED"
+
+[flail]
+durabilityMultiplier = 1.1
+baseAttackDamage = 4
+attackSpeed = -3.4
+mendingBonus = 0.0
+knockback = 0.5
+attackRange = 1.0
+gripType = "ONEHANDED"
+
+[glaive]
+durabilityMultiplier = 1.0
+baseAttackDamage = 3
+attackSpeed = -3.2
+mendingBonus = 0.1
+knockback = 0.5
+attackRange = 2.0
+gripType = "TWOHANDED"
+
+[great_hammer]
+durabilityMultiplier = 1.5
+baseAttackDamage = 5
+attackSpeed = -3.3
+mendingBonus = 0.0
+knockback = 1.0
+attackRange = 0.0
+gripType = "ONEHANDED"
+
+[katana]
+durabilityMultiplier = 1.0
+baseAttackDamage = 2
+attackSpeed = -2.4
+mendingBonus = 0.0
+knockback = 0.0
+attackRange = 0.5
+gripType = "ONEHANDED"
+
+[mace]
+durabilityMultiplier = 1.1
+baseAttackDamage = 4
+attackSpeed = -3.2
+mendingBonus = 0.0
+knockback = 0.5
+attackRange = 0.0
+gripType = "ONEHANDED"
+
+[scythe]
+durabilityMultiplier = 1.2
+baseAttackDamage = 4
+attackSpeed = -3.4
+mendingBonus = 0.1
+knockback = 1.0
+attackRange = 2.0
+gripType = "TWOHANDED"
+
+[sickle]
+durabilityMultiplier = 0.8
+baseAttackDamage = 0
+attackSpeed = -1.8
+mendingBonus = 0.2
+knockback = 0.0
+attackRange = 0.0
+gripType = "DUALWIELD"
+
+[spear]
+durabilityMultiplier = 1.0
+baseAttackDamage = 3
+attackSpeed = -3.4
+mendingBonus = 0.1
+knockback = 0.5
+attackRange = 2.0
+gripType = "TWOHANDED"
+
+[vanilla.durability]
+toolBaseDurability = 0
+gauntletDurability = 0
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[vanilla.enchanting]
+offenseEnchantability = 0
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[vanilla.offense]
+addedAttackDamage = 0.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[vanilla.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 2.5
+afterBasePercentReduction = 0.3
+
+[vanilla.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[vanilla.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[leather.durability]
+toolBaseDurability = 0
+gauntletDurability = 131
+bowCrossbowDurability = 80
+addedShieldDurability = 0
+
+[leather.enchanting]
+offenseEnchantability = 5
+defenseEnchantability = 15
+mendingBonus = 0.0
+
+[leather.offense]
+addedAttackDamage = 1.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 2
+
+[leather.defense]
+gauntletArmorAmount = 1
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NOT_TRIM"
+baseProtectionAmmount = 2.75
+afterBasePercentReduction = 0.45
+
+[leather.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[leather.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[rebbitLeather.durability]
+toolBaseDurability = 0
+gauntletDurability = 110
+bowCrossbowDurability = 75
+addedShieldDurability = 0
+
+[rebbitLeather.enchanting]
+offenseEnchantability = 5
+defenseEnchantability = 15
+mendingBonus = 0.0
+
+[rebbitLeather.offense]
+addedAttackDamage = 1.5
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 3
+
+[rebbitLeather.defense]
+gauntletArmorAmount = 1
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NOT_TRIM"
+baseProtectionAmmount = 2.65
+afterBasePercentReduction = 0.5
+
+[rebbitLeather.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[rebbitLeather.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[woodPlank.durability]
+toolBaseDurability = 59
+gauntletDurability = 0
+bowCrossbowDurability = 40
+addedShieldDurability = 0
+
+[woodPlank.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[woodPlank.offense]
+addedAttackDamage = 0.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[woodPlank.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 2.5
+afterBasePercentReduction = 0.3
+
+[woodPlank.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[woodPlank.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[stone.durability]
+toolBaseDurability = 131
+gauntletDurability = 0
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[stone.enchanting]
+offenseEnchantability = 5
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[stone.offense]
+addedAttackDamage = 1.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[stone.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[stone.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[stone.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[iron.durability]
+toolBaseDurability = 250
+gauntletDurability = 250
+bowCrossbowDurability = 150
+addedShieldDurability = 480
+
+[iron.enchanting]
+offenseEnchantability = 14
+defenseEnchantability = 9
+mendingBonus = 0.0
+
+[iron.offense]
+addedAttackDamage = 2.0
+arrowDamage = 3.0
+defaultArrowGravity = 0.045
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.15
+quiverStacks = 4
+
+[iron.defense]
+gauntletArmorAmount = 2
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 3.0
+afterBasePercentReduction = 0.6
+
+[iron.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_iron"
+
+[iron.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[gold.durability]
+toolBaseDurability = 32
+gauntletDurability = 91
+bowCrossbowDurability = 40
+addedShieldDurability = 395
+
+[gold.enchanting]
+offenseEnchantability = 22
+defenseEnchantability = 25
+mendingBonus = 2.0
+
+[gold.offense]
+addedAttackDamage = 0.0
+arrowDamage = 4.0
+defaultArrowGravity = 0.07
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.1
+quiverStacks = 6
+
+[gold.defense]
+gauntletArmorAmount = 1
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = true
+placementInShield = "ALL"
+baseProtectionAmmount = 3.0
+afterBasePercentReduction = 0.4
+
+[gold.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_gold"
+
+[gold.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[diamond.durability]
+toolBaseDurability = 1561
+gauntletDurability = 1561
+bowCrossbowDurability = 300
+addedShieldDurability = 672
+
+[diamond.enchanting]
+offenseEnchantability = 10
+defenseEnchantability = 10
+mendingBonus = -0.1
+
+[diamond.offense]
+addedAttackDamage = 3.0
+arrowDamage = 3.75
+defaultArrowGravity = 0.04
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.3
+quiverStacks = 8
+
+[diamond.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 5.0
+afterBasePercentReduction = 0.75
+
+[diamond.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_diamond"
+
+[diamond.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[netherite.durability]
+toolBaseDurability = 2031
+gauntletDurability = 2031
+bowCrossbowDurability = 375
+addedShieldDurability = 768
+
+[netherite.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.2
+
+[netherite.offense]
+addedAttackDamage = 4.0
+arrowDamage = 4.5
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.45
+quiverStacks = 10
+
+[netherite.defense]
+gauntletArmorAmount = 3
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "ALL"
+baseProtectionAmmount = 6.0
+afterBasePercentReduction = 0.85
+
+[netherite.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_netherite"
+
+[netherite.crafting]
+isSingleAddition = true
+
+[[netherite.crafting.onlyReplaceResource]]
+namespace = "expanded_combat"
+path = "diamond"
+
+[heartStealer.durability]
+toolBaseDurability = 2031
+gauntletDurability = 2031
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[heartStealer.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[heartStealer.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[heartStealer.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[heartStealer.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[heartStealer.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[heat.durability]
+toolBaseDurability = 2031
+gauntletDurability = 2031
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[heat.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[heat.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[heat.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = true
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[heat.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[heat.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[frost.durability]
+toolBaseDurability = 1561
+gauntletDurability = 1561
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[frost.enchanting]
+offenseEnchantability = 10
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[frost.offense]
+addedAttackDamage = 3.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[frost.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[frost.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[frost.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[voidTouched.durability]
+toolBaseDurability = 2031
+gauntletDurability = 2031
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[voidTouched.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 0
+mendingBonus = 0.0
+
+[voidTouched.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[voidTouched.defense]
+gauntletArmorAmount = 0
+armorToughness = 0.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[voidTouched.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[voidTouched.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[soul.durability]
+toolBaseDurability = 2031
+gauntletDurability = 3
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[soul.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+
+[soul.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[soul.defense]
+gauntletArmorAmount = 0
+armorToughness = 2.0
+knockbackResistance = 0.05
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[soul.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[soul.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[fighters.durability]
+toolBaseDurability = 1561
+gauntletDurability = 3
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[fighters.enchanting]
+offenseEnchantability = 10
+defenseEnchantability = 10
+mendingBonus = 0.0
+
+[fighters.offense]
+addedAttackDamage = 3.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[fighters.defense]
+gauntletArmorAmount = 0
+armorToughness = 3.0
+knockbackResistance = 0.05
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[fighters.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[fighters.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[maulers.durability]
+toolBaseDurability = 1561
+gauntletDurability = 3
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[maulers.enchanting]
+offenseEnchantability = 10
+defenseEnchantability = 10
+mendingBonus = 0.0
+
+[maulers.offense]
+addedAttackDamage = 3.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[maulers.defense]
+gauntletArmorAmount = 0
+armorToughness = 3.0
+knockbackResistance = 0.05
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[maulers.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[maulers.crafting]
+isSingleAddition = false
+onlyReplaceResource = []
+
+[gauntlet.durability]
+toolBaseDurability = 2031
+gauntletDurability = 3
+bowCrossbowDurability = 0
+addedShieldDurability = 0
+
+[gauntlet.enchanting]
+offenseEnchantability = 15
+defenseEnchantability = 15
+mendingBonus = 0.0
+
+[gauntlet.offense]
+addedAttackDamage = 4.0
+arrowDamage = 0.0
+defaultArrowGravity = 0.05
+flaming = false
+canBeTipped = true
+velocityMultiplier = 1.0
+quiverStacks = 0
+
+[gauntlet.defense]
+gauntletArmorAmount = 0
+armorToughness = 3.0
+knockbackResistance = 0.0
+fireResistant = false
+makesPiglinsNeutral = false
+placementInShield = "NONE"
+baseProtectionAmmount = 0.0
+afterBasePercentReduction = 0.0
+
+[gauntlet.defense.equipSound]
+namespace = "minecraft"
+path = "item.armor.equip_generic"
+
+[gauntlet.crafting]
+isSingleAddition = false
+onlyReplaceResource = []

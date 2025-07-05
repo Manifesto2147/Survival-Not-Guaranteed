@@ -1,0 +1,6 @@
+[
+  {"version":2},
+  {"ingredient":{"id":"minecraft:potion","components":{"minecraft:potion_contents":{"potion":"minecraft:water"},"thirst:purity":3}},"type":"item_stack","bookmarkType":"INGREDIENT"},
+  {"ingredient":{"id":"iceandfire:dragonscales_green"},"type":"item_stack","bookmarkType":"INGREDIENT"},
+  {"ingredient":{"id":"create:gearbox"},"type":"item_stack","bookmarkType":"INGREDIENT"}
+]
