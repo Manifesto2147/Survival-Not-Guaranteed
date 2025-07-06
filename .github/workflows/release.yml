@@ -42,103 +42,109 @@ jobs:
         sudo apt-get install -y jq curl wget
         npm install -g modrinth
         
-    - name: Analyze changes and determine version bump
+    - name: Validate and prepare release
       id: version
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
-        echo "- Using build script's version detection logic..."
+        echo "- Validating pre-built modpack and determining version..."
         
-        # Download mods from manifest for CI build (Manifest-Based Mod Acquisition)
-        echo "- Downloading mods from manifest for CI build..."
-        mkdir -p mods
-        
-        if [ -f "modrinth.index.json" ]; then
-          echo "- Found existing manifest, downloading $(jq -r '.files | length' modrinth.index.json) mod files..."
-          
-          # Extract download URLs and filenames from modrinth.index.json
-          jq -r '.files[] | select(.path | startswith("mods/")) | "\(.downloads[0]) \(.path)"' modrinth.index.json | while read -r url path; do
-            if [ -n "$url" ] && [ "$url" != "null" ] && [ -n "$path" ]; then
-              filename=$(basename "$path")
-              echo "  Downloading: $filename"
-              
-              # Try to download the file, but don't create empty files on failure
-              download_success=false
-              if curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
-                if [ -s "mods/$filename" ]; then
-                  download_success=true
-                fi
-              fi
-              
-              if [ "$download_success" = false ]; then
-                # Remove any empty file that might have been created
-                [ -f "mods/$filename" ] && rm -f "mods/$filename"
-                
-                # Try wget as fallback
-                if wget -q -O "mods/$filename" "$url" 2>/dev/null; then
-                  if [ -s "mods/$filename" ]; then
-                    download_success=true
-                  fi
-                fi
-              fi
-              
-              if [ "$download_success" = false ]; then
-                # Remove any empty file that might have been created
-                [ -f "mods/$filename" ] && rm -f "mods/$filename"
-                echo "  WARNING: Failed to download $filename from $url"
-              fi
-            fi
-          done
-          
-          # Count successfully downloaded files
-          downloaded_count=$(ls mods/*.jar 2>/dev/null | wc -l)
-          echo "+ Downloaded $downloaded_count mod files from manifest"
-        else
-          echo "- No existing manifest found, build script will generate one"
-        fi
-        
-        # Let the build script handle version detection
-        chmod +x build.sh
-        
-        # Run build script to get the version (it will detect and increment properly)
-        echo "- Running build script..."
-        if ! ./build.sh; then
-          echo "ERROR: Build script failed"
-          exit 1
-        fi
-        echo "- Build script completed successfully"
-        
-        # Extract version from generated manifest
-        if [ -f "modrinth.index.json" ]; then
-          VERSION=$(jq -r '.versionId' modrinth.index.json)
-          echo "Build script determined version: $VERSION"
-        else
-          echo "ERROR: No modrinth.index.json found after build"
-          exit 1
-        fi
-        
-        # Output for next steps
-        echo "new_version=$VERSION" >> $GITHUB_OUTPUT
-        
-        # Find the generated .mrpack file
+        # Check if modpack exists
         MRPACK_FILE=$(find . -name "*.mrpack" -type f | head -1)
         if [ -z "$MRPACK_FILE" ]; then
-          echo "- FAILED: No .mrpack file found!"
+          echo "ERROR: No .mrpack file found! Please build locally first."
           exit 1
         fi
+        echo "+ Found modpack: $MRPACK_FILE"
         
-        echo "+ Found .mrpack file: $MRPACK_FILE"
+        # Validate manifest exists
+        if [ ! -f "modrinth.index.json" ]; then
+          echo "ERROR: No modrinth.index.json found! Please build locally first."
+          exit 1
+        fi
+        echo "+ Found manifest: modrinth.index.json"
+        
+        # Get current version from manifest
+        CURRENT_VERSION=$(jq -r '.versionId' modrinth.index.json)
+        echo "+ Current version in manifest: $CURRENT_VERSION"
+        
+        # Smart version detection based on changed files
+        echo "- Analyzing changes for version bump..."
+        
+        # Get the last release tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "+ Last release tag: $LAST_TAG"
+        
+        # Check what files changed since last release
+        if [ "$LAST_TAG" != "v0.0.0" ]; then
+          CHANGED_FILES=$(git diff --name-only "$LAST_TAG" HEAD || echo "")
+        else
+          CHANGED_FILES=$(git ls-files)
+        fi
+        
+        echo "+ Changed files:"
+        echo "$CHANGED_FILES" | sed 's/^/  /'
+        
+        # Determine version bump type
+        BUMP_TYPE="patch"  # default
+        
+        if echo "$CHANGED_FILES" | grep -q "modrinth.index.json"; then
+          # Check if this is a mod addition/removal (minor) or just config change (patch)
+          if git show HEAD:modrinth.index.json 2>/dev/null | jq -r '.files | length' 2>/dev/null > /tmp/old_count && \
+             jq -r '.files | length' modrinth.index.json > /tmp/new_count; then
+            OLD_COUNT=$(cat /tmp/old_count)
+            NEW_COUNT=$(cat /tmp/new_count)
+            if [ "$OLD_COUNT" != "$NEW_COUNT" ]; then
+              BUMP_TYPE="minor"
+              echo "+ Detected mod count change: $OLD_COUNT -> $NEW_COUNT (minor bump)"
+            fi
+          fi
+        fi
+        
+        if echo "$CHANGED_FILES" | grep -qE "^(config|scripts|shaderpacks)/"; then
+          echo "+ Detected configuration changes (patch bump)"
+        fi
+        
+        # Generate new version
+        BASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/^v//')
+        IFS='.' read -r major minor patch <<< "$BASE_VERSION"
+        
+        case "$BUMP_TYPE" in
+          "major") NEW_VERSION="$((major + 1)).0.0" ;;
+          "minor") NEW_VERSION="$major.$((minor + 1)).0" ;;
+          "patch") NEW_VERSION="$major.$minor.$((patch + 1))" ;;
+        esac
+        
+        echo "+ Version bump: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
+        
+        # Update manifest version
+        echo "- Updating manifest version..."
+        jq --arg version "$NEW_VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
+        mv modrinth.index.json.tmp modrinth.index.json
+        
+        # Update mrpack filename if needed
+        NEW_MRPACK_NAME="Survival Not Guaranteed-$NEW_VERSION.mrpack"
+        if [ "$(basename "$MRPACK_FILE")" != "$NEW_MRPACK_NAME" ]; then
+          echo "- Renaming mrpack file to match version..."
+          mv "$MRPACK_FILE" "$NEW_MRPACK_NAME"
+          MRPACK_FILE="$NEW_MRPACK_NAME"
+        fi
+        
+        # Outputs for next steps
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "mrpack_file=$MRPACK_FILE" >> $GITHUB_OUTPUT
         
-        # Check if changelog was generated
+        # Check if changelog exists
         if [ -f "CHANGELOG.md" ]; then
           echo "changelog_file=CHANGELOG.md" >> $GITHUB_OUTPUT
-          echo "+ Found generated changelog: CHANGELOG.md"
+          echo "+ Found changelog: CHANGELOG.md"
         else
-          echo "+ No changelog generated, will use default"
+          echo "+ No changelog found, will use default"
         fi
+        
+        echo "+ Release preparation complete"
       
     - name: Create GitHub Release
       env:
@@ -343,13 +349,13 @@ jobs:
         git config --local user.name "GitHub Action"
         
         # Check if there are changes to commit
-        if git diff --quiet; then
+        if git diff --quiet && git diff --cached --quiet; then
           echo "No changes to commit"
           exit 0
         fi
         
-        # Commit changes
-        git add modrinth.index.json
+        # Commit changes (manifest version update and possibly mrpack rename)
+        git add modrinth.index.json *.mrpack
         git commit -m "Update version to $VERSION
 
         - Automated version bump from GitHub Actions
@@ -360,13 +366,3 @@ jobs:
         git push origin main
         
         echo "+ Version update committed and pushed"
-        
-    - name: Cleanup downloaded mods
-      if: always()
-      run: |
-        # Clean up temporarily downloaded mod files
-        if [ -d "mods" ]; then
-          echo "- Cleaning up downloaded mod files..."
-          rm -rf mods/
-          echo "+ Cleanup complete"
-        fi
