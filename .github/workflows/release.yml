@@ -37,6 +37,9 @@ jobs:
         
     - name: Install dependencies
       run: |
+        # Install required tools
+        sudo apt-get update
+        sudo apt-get install -y jq curl wget
         npm install -g modrinth
         
     - name: Analyze changes and determine version bump
@@ -62,11 +65,29 @@ jobs:
               echo "  Downloading: $filename"
               
               # Try to download the file, but don't create empty files on failure
-              if ! curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
-                if ! wget -q -O "mods/$filename" "$url" 2>/dev/null; then
-                  echo "  WARNING: Failed to download $filename from $url"
-                  # Don't create empty files - let the build script handle missing files
+              download_success=false
+              if curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
+                if [ -s "mods/$filename" ]; then
+                  download_success=true
                 fi
+              fi
+              
+              if [ "$download_success" = false ]; then
+                # Remove any empty file that might have been created
+                [ -f "mods/$filename" ] && rm -f "mods/$filename"
+                
+                # Try wget as fallback
+                if wget -q -O "mods/$filename" "$url" 2>/dev/null; then
+                  if [ -s "mods/$filename" ]; then
+                    download_success=true
+                  fi
+                fi
+              fi
+              
+              if [ "$download_success" = false ]; then
+                # Remove any empty file that might have been created
+                [ -f "mods/$filename" ] && rm -f "mods/$filename"
+                echo "  WARNING: Failed to download $filename from $url"
               fi
             fi
           done
@@ -82,7 +103,12 @@ jobs:
         chmod +x build.sh
         
         # Run build script to get the version (it will detect and increment properly)
-        ./build.sh
+        echo "- Running build script..."
+        if ! ./build.sh; then
+          echo "ERROR: Build script failed"
+          exit 1
+        fi
+        echo "- Build script completed successfully"
         
         # Extract version from generated manifest
         if [ -f "modrinth.index.json" ]; then
