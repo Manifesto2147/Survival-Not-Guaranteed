@@ -34,7 +34,7 @@ MANUAL_OVERRIDES_USED=0
 PACK_INCLUDED=0
 SMART_UPDATES=0
 CLIENT_ONLY_MODS=0
-SERVER_ONLY_MODS=0
+SERVER_ONLY_MOD_COUNT=0
 UNIVERSAL_MODS=0
 FAILED_LOOKUPS=()
 
@@ -1038,7 +1038,7 @@ generate_mod_entry_from_override() {
     ((CLIENT_ONLY_MODS++))
   elif is_server_only_mod "$mod_filename"; then
     env="server"
-    ((SERVER_ONLY_MODS++))
+    ((SERVER_ONLY_MOD_COUNT++))
   else
     ((UNIVERSAL_MODS++))
   fi
@@ -1140,7 +1140,7 @@ generate_manifest() {
         CLIENT_ONLY_MODS=$((CLIENT_ONLY_MODS + 1))
         ;;
       "server_only")
-        SERVER_ONLY_MODS=$((SERVER_ONLY_MODS + 1))
+        SERVER_ONLY_MOD_COUNT=$((SERVER_ONLY_MOD_COUNT + 1))
         ;;
       "both")
         UNIVERSAL_MODS=$((UNIVERSAL_MODS + 1))
@@ -1356,6 +1356,23 @@ create_mrpack() {
   zip -r "../$pack_name" . -x "*.DS_Store" "*/__pycache__/*" "*/.*" >/dev/null 2>&1
   cd ..
   
+  # Verify critical files are present in the .mrpack
+  echo "- Verifying .mrpack structure..."
+  local options_present=$(unzip -l "$pack_name" | grep -c "overrides/options.txt" || echo "0")
+  local servers_present=$(unzip -l "$pack_name" | grep -c "overrides/servers.dat" || echo "0")
+  
+  if [ "$options_present" -eq 1 ]; then
+    echo "  ✅ options.txt found in overrides/"
+  else
+    echo "  ❌ options.txt MISSING from overrides/"
+  fi
+  
+  if [ "$servers_present" -eq 1 ]; then
+    echo "  ✅ servers.dat found in overrides/"
+  else
+    echo "  ❌ servers.dat MISSING from overrides/"
+  fi
+  
   # Clean up
   rm -rf "$temp_dir"
   
@@ -1501,7 +1518,7 @@ generate_changelog() {
   detailed_changelog="${detailed_changelog}- Total Mods: $TOTAL_MODS\n"
   detailed_changelog="${detailed_changelog}- Universal Mods (Client + Server): $UNIVERSAL_MODS\n"
   detailed_changelog="${detailed_changelog}- Client-Only Mods: $CLIENT_ONLY_MODS\n"
-  detailed_changelog="${detailed_changelog}- Server-Only Mods: $SERVER_ONLY_MODS\n"
+  detailed_changelog="${detailed_changelog}- Server-Only Mods: $SERVER_ONLY_MOD_COUNT\n"
   detailed_changelog="${detailed_changelog}- Minecraft Version: $MINECRAFT_VERSION\n"
   detailed_changelog="${detailed_changelog}- NeoForge Version: $NEOFORGE_VERSION\n"
   detailed_changelog="${detailed_changelog}- External Downloads: $((MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED)) of $TOTAL_MODS ($(( (MODRINTH_FOUND + CURSEFORGE_FOUND + MANUAL_OVERRIDES_USED) * 100 / TOTAL_MODS ))%)\n"
@@ -1563,7 +1580,7 @@ print_statistics() {
   echo "- Environment Distribution:"
   echo "Universal mods (client + server): $UNIVERSAL_MODS"
   echo "Client-only mods: $CLIENT_ONLY_MODS"
-  echo "Server-only mods: $SERVER_ONLY_MODS"
+  echo "Server-only mods: $SERVER_ONLY_MOD_COUNT"
   echo ""
   
   if [ $TOTAL_MODS -gt 0 ]; then
@@ -1591,8 +1608,8 @@ print_statistics() {
     echo "- $CLIENT_ONLY_MODS client-only mods detected (will not be installed on dedicated servers)"
   fi
   
-  if [ $SERVER_ONLY_MODS -gt 0 ]; then
-    echo "- $SERVER_ONLY_MODS server-only mods detected (will not be installed on clients)"
+  if [ $SERVER_ONLY_MOD_COUNT -gt 0 ]; then
+    echo "- $SERVER_ONLY_MOD_COUNT server-only mods detected (will not be installed on clients)"
   fi
 }
 
@@ -1681,6 +1698,11 @@ main() {
   echo "1. Test the .mrpack file in Modrinth App"
   echo "2. Upload to GitHub releases"
   echo "3. Push to Modrinth for distribution"
+  echo ""
+  echo "📋 If options.txt or servers.dat are not recognized by the launcher:"
+  echo "1. Check docs/TROUBLESHOOTING.md for debugging steps"
+  echo "2. Try with a different launcher (PrismLauncher) to isolate the issue"
+  echo "3. Report to Modrinth support if the issue persists"
 }
 
 # Run main function

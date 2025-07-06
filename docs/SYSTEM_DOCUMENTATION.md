@@ -26,16 +26,16 @@ Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featurin
 - **Management**: Fully automated mod updates and dependency resolution
 - **Repository Strategy**: Lightweight repository with no binary mod files tracked
 
-### Recent Infrastructure Improvements (v3.13.0+)
+### Recent Infrastructure Improvements (v3.12.0+)
 - **Git Optimization**: Removed mod files from repository tracking (131 files excluded)
 - **CI/CD Enhancement**: Implemented manifest-based CI builds with temporary mod download
 - **Build System**: Dual-mode operation for local development and CI automation
 - **Workflow Optimization**: Automated mod acquisition from manifest URLs in CI
 - **Documentation**: Updated to reflect manifest-driven development workflow
 - **Legal Compliance**: Enhanced mod licensing compliance with official-source-only downloads
-- **CI/CD Enhancement**: Fixed GitHub Actions workflow path references
-- **Build System**: Improved version detection and change analysis
-- **Documentation**: Updated to reflect actual system architecture
+- **Build Verification**: Added automatic verification of critical files in .mrpack
+- **Troubleshooting**: Enhanced diagnostics and troubleshooting tools
+- **Client Configuration**: Improved handling of options.txt and servers.dat files
 - **Maintainability**: Enhanced troubleshooting and maintenance procedures
 
 ## Branch Architecture
@@ -71,7 +71,7 @@ The central manifest file defining the complete modpack structure:
 {
   "formatVersion": 1,
   "game": "minecraft",
-  "versionId": "3.10.1",
+  "versionId": "3.12.1",
   "name": "Survival Not Guaranteed",
   "files": [...]
 }
@@ -388,15 +388,17 @@ Survival Not Guaranteed/
 ├── .github/
 │   └── workflows/           # GitHub Actions CI/CD
 ├── docs/                    # Documentation
-│   └── SYSTEM_DOCUMENTATION.md
+│   ├── SYSTEM_DOCUMENTATION.md
+│   └── TROUBLESHOOTING.md
 ├── config/                  # PrismLauncher instance config
 ├── mods/                    # Mod JAR files (excluded from Git)
 ├── scripts/                 # CraftTweaker scripts
 ├── shaderpacks/             # Shader files
 ├── tools/
-│   └── core/
-│       ├── [update-mods.sh](../tools/update-mods.sh)  # Advanced update system
-│       └── [validate-dependencies.sh](../tools/validate-dependencies.sh)
+│   ├── core/
+│   │   ├── [update-mods.sh](../tools/update-mods.sh)  # Advanced update system
+│   │   └── [validate-dependencies.sh](../tools/validate-dependencies.sh)
+│   └── [create_test_pack.sh](../tools/create_test_pack.sh)  # Diagnostic tool
 ├── [build.sh](../build.sh)                # Main build script
 ├── [manage-modpack.sh](../manage-modpack.sh)       # Unified management interface
 ├── [fix-data-validation-errors.sh](../fix-data-validation-errors.sh)
@@ -412,12 +414,12 @@ Survival Not Guaranteed/
 ### Directory Purposes
 
 **/.github/workflows/**: Automation and CI/CD pipeline definitions
-**/docs/**: Comprehensive system documentation
+**/docs/**: Comprehensive system documentation and troubleshooting guides
 **/config/**: PrismLauncher-specific configuration files
 **/mods/**: Mod JAR files (excluded from Git tracking, populated by build system)
 **/scripts/**: CraftTweaker scripts
 **/shaderpacks/**: Shader files
-**/tools/**: Advanced management utilities
+**/tools/**: Advanced management utilities and diagnostic tools
 **Root Level**: Primary scripts and configuration files
 
 ### Git Tracking Strategy
@@ -525,6 +527,17 @@ Mods are classified into three categories:
 3. Update content hash to reflect actual state
 4. Document infrastructure changes separately from content changes
 
+#### Launcher Compatibility Issues
+**Symptom**: options.txt or servers.dat not recognized by Modrinth launcher
+**Solution**:
+1. Verify files are present in .mrpack: `unzip -l "pack.mrpack" | grep -E "(options|servers)"`
+2. Check `docs/TROUBLESHOOTING.md` for detailed diagnostic steps
+3. Use `./tools/create_test_pack.sh` to create minimal test pack
+4. Test with alternative launcher (PrismLauncher) to isolate the issue
+5. Verify launcher version is up-to-date
+6. Check if files exist in Minecraft instance directory after import
+7. Report to launcher maintainers if issue persists
+
 ### Maintenance Tasks
 
 #### Regular Maintenance (Weekly)
@@ -555,6 +568,18 @@ cp backup/auto-updates/TIMESTAMP/modrinth.index.json ../
 
 # Force rebuild
 [../build.sh](../build.sh) --force-external
+```
+
+#### Build Verification Testing
+```bash
+# Test build with verification
+[../build.sh](../build.sh)    # Includes automatic verification
+
+# Create diagnostic test pack
+[../tools/create_test_pack.sh](../tools/create_test_pack.sh)
+
+# Manual verification of .mrpack contents
+unzip -l "Survival Not Guaranteed-X.X.X.mrpack" | grep -E "(options|servers)"
 ```
 
 ### Monitoring and Logging
@@ -588,6 +613,25 @@ cp backup/auto-updates/TIMESTAMP/modrinth.index.json ../
 3. Include comprehensive help documentation
 4. Test on both main and develop branches
 
+### Diagnostic Tools
+
+#### Build Verification
+The build system now includes automatic verification of critical files:
+- **options.txt verification**: Confirms client settings are included in .mrpack
+- **servers.dat verification**: Confirms server list is included in .mrpack  
+- **Override structure validation**: Ensures proper directory structure in generated packages
+
+#### Troubleshooting Resources
+- **docs/TROUBLESHOOTING.md**: Comprehensive troubleshooting guide for common issues
+- **tools/create_test_pack.sh**: Creates minimal test .mrpack for diagnosing launcher issues
+- **Build output verification**: Real-time validation feedback during build process
+
+#### Launcher Compatibility Testing
+Tools for testing .mrpack compatibility across different launchers:
+- **Modrinth App**: Primary target with optimization for overrides structure
+- **PrismLauncher**: Alternative launcher for isolation testing
+- **Structure validation**: Ensures compliance with modpack format specifications
+
 ## Quick Reference
 
 ### Essential Commands
@@ -597,6 +641,7 @@ cp backup/auto-updates/TIMESTAMP/modrinth.index.json ../
 | `../manage-modpack.sh full-check` | Complete validation | [manage-modpack.sh](../manage-modpack.sh) |
 | `../tools/update-mods.sh` | Update mods | [update-mods.sh](../tools/update-mods.sh) |
 | `../validate-directory-structure.sh` | Validate structure | [validate-directory-structure.sh](../validate-directory-structure.sh) |
+| `../tools/create_test_pack.sh` | Create minimal test .mrpack | [create_test_pack.sh](../tools/create_test_pack.sh) |
 
 ### Key Files
 | File | Purpose | Link |
@@ -605,6 +650,7 @@ cp backup/auto-updates/TIMESTAMP/modrinth.index.json ../
 | URL Overrides | Custom download URLs | [mod_overrides.conf](../mod_overrides.conf) |
 | Change Log | Version history | [CHANGELOG.md](../CHANGELOG.md) |
 | User Guide | End-user documentation | [README.md](../README.md) |
+| Troubleshooting | Diagnostic and troubleshooting guide | [docs/TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 
 This documentation provides a complete reference for understanding, maintaining, and extending the Survival Not Guaranteed modpack management system. The architecture is designed for reliability, automation, and ease of maintenance while supporting both development and production workflows.
 
