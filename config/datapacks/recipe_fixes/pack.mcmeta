@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Recipe validation fixes for Survival Not Guaranteed",
+    "pack_format": 57,
+    "supported_formats": [57, 58]
+  }
+}

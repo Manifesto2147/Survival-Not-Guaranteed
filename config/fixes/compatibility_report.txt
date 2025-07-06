@@ -1,0 +1,25 @@
+Mod Compatibility Report - Survival Not Guaranteed
+==================================================
+
+RECIPE PARSING ERRORS:
+- Multiple Create addon recipes fail due to missing mod dependencies
+- Some recipes use unsupported serializer types
+- Empty recipe files cause JSON parsing failures
+
+LOOT TABLE ERRORS:
+- Azister Weapons & Deco has missing item registrations
+- Some Cultural Delights items are not properly registered
+- Samurai Dynasty statue blocks have malformed loot conditions
+
+TAG VALIDATION ERRORS:
+- Cold Sweat biome tags contain malformed boolean values
+- Some item tags reference non-existent items
+- Missing tag definitions for Create addons
+
+RECOMMENDATIONS:
+1. Update Cold Sweat to fix access transformer issues
+2. Consider removing or updating problematic Create addons
+3. Verify all item and block registrations are complete
+4. Test recipe functionality in-game after fixes
+
+Generated: $(date)
