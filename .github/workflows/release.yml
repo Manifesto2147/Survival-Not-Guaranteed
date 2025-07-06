@@ -10,18 +10,10 @@ on:
       - 'shaderpacks/**'     # Shader packs (PATCH)
       - 'modrinth.index.json' # Mod manifest (MINOR for mod changes, PATCH for config)
       - 'mod_overrides.conf' # URL overrides (PATCH)
+      - 'options.txt'        # Client settings (PATCH)
+      - 'servers.dat'        # Server list (PATCH)
       # Note: mods/** excluded from Git but monitored by build system
-    paths-ignore:
-      # Infrastructure changes (no release needed)
-      - 'docs/**'
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - '.gitignore'
-      - 'build.sh'
-      - 'manage-modpack.sh'
-      - 'fix-data-validation-errors.sh'
-      - 'validate-directory-structure.sh'
-      - 'tools/**'
+      # Infrastructure files (docs, README, build scripts, etc.) are excluded
   workflow_dispatch:
 
 jobs:
