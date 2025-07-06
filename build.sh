@@ -399,6 +399,20 @@ get_manual_environment_override() {
         return
     fi
     
+    # Ice and Fire CE and its dependencies
+    if [[ "$mod_name" == *"iceandfire"* ]] || [[ "$mod_name" == *"ice_and_fire"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"uranus"* ]]; then
+        echo "both"
+        return
+    fi
+    if [[ "$mod_name" == *"jupiter"* ]]; then
+        echo "both"
+        return
+    fi
+    
     # Known universal mods that might be misclassified
     if [[ "$mod_name" == *"creativecore"* ]]; then
         echo "both"

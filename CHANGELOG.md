@@ -1,34 +1,12 @@
-Survival Not Guaranteed v3.12.1
+Survival Not Guaranteed v3.12.2
 
 Release Date: July 06, 2025
-Previous Version: 3.12.0
-
-MAJOR CHANGES
-
-- **Epic Knights Environment Fix**: Changed Epic Knights mod from client-only to universal (client + server) environment
-- **RAM Allocation Enhancement**: Implemented cross-launcher 4GB RAM allocation using standards-compliant configuration files
-- **Launcher Compatibility**: Added support for multiple launcher profiles (Modrinth, PrismLauncher, MultiMC)
-- **Server Compatibility**: Fixed Epic Knights availability on dedicated servers
-
-TECHNICAL IMPROVEMENTS
-
-- **Build System**: Enhanced environment override system for problematic mods
-- **Mod Override System**: Added manual download overrides for Epic Knights reliability
-- **Launcher Profiles**: Added `modrinth.launcher.json` and `launcher_profiles.json` for automatic RAM configuration
-- **Instance Configuration**: Added `instance.cfg` for PrismLauncher/MultiMC compatibility
-- **Memory Optimization**: Implemented optimized JVM arguments (Aikar's flags) for better performance
-
-BUG FIXES
-
-- Fixed Epic Knights mod not being available on servers due to incorrect environment setting
-- Resolved broken recipes and missing items from environment mismatches
-- Fixed RAM allocation not carrying over in launcher profiles
+Previous Version: 3.12.2
 
 OTHER CHANGES
 
 - Updated modpack components
 - General improvements and optimizations
-- Enhanced cross-launcher compatibility
 
 TECHNICAL DETAILS
 
