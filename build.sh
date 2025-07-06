@@ -997,6 +997,119 @@ smart_mod_lookup() {
 
 # ==================== MANIFEST GENERATION ====================
 
+# Generate manifest from mod_overrides.conf when mods directory doesn't exist (CI environments)
+generate_manifest_from_overrides() {
+  echo "- Generating manifest from mod_overrides.conf for CI environment..."
+  
+  local mod_entries=""
+  local file_count=0
+  
+  # Check if mod_overrides.conf exists
+  if [ ! -f "mod_overrides.conf" ]; then
+    echo "- ERROR: No mod_overrides.conf found and no mods directory available"
+    echo "- Cannot generate manifest without mod information"
+    exit 1
+  fi
+  
+  # Read mod_overrides.conf and generate entries
+  while IFS= read -r line; do
+    # Skip empty lines and comments
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    
+    # Parse override entry (format: mod_filename=download_url)
+    if [[ "$line" =~ ^([^=]+)=(.+)$ ]]; then
+      local mod_filename="${BASH_REMATCH[1]}"
+      local download_url="${BASH_REMATCH[2]}"
+      
+      echo "- Processing mod from overrides: $mod_filename"
+      
+      # Generate mod entry
+      local mod_entry=$(generate_mod_entry_from_override "$mod_filename" "$download_url")
+      
+      if [ -n "$mod_entry" ]; then
+        if [ -n "$mod_entries" ]; then
+          mod_entries="$mod_entries,"
+        fi
+        mod_entries="$mod_entries$mod_entry"
+        ((file_count++))
+        ((TOTAL_MODS++))
+        ((MANUAL_OVERRIDES_USED++))
+      else
+        echo "- WARNING: Failed to generate entry for $mod_filename"
+      fi
+    fi
+  done < "mod_overrides.conf"
+  
+  # Generate the final manifest
+  generate_final_manifest "$mod_entries" "$file_count"
+}
+
+# Generate final manifest JSON
+generate_final_manifest() {
+  local mod_entries="$1"
+  local file_count="$2"
+  
+  # Generate complete manifest optimized for Modrinth App
+  cat > modrinth.index.json << EOF
+{
+  "formatVersion": 1,
+  "game": "minecraft",
+  "versionId": "$CURRENT_VERSION",
+  "name": "$PROJECT_NAME",
+  "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
+  "files": [
+$(echo -e "$mod_entries")
+  ],
+  "dependencies": {
+    "minecraft": "$MINECRAFT_VERSION",
+    "$MODLOADER": "$NEOFORGE_VERSION"
+  }
+}
+EOF
+  
+  echo "+ Generated manifest with $file_count mod entries"
+}
+
+# Generate mod entry from override configuration
+generate_mod_entry_from_override() {
+  local mod_filename="$1"
+  local download_url="$2"
+  
+  # Extract mod name from filename
+  local mod_name=$(basename "$mod_filename" .jar)
+  
+  # Determine environment (default to both if unknown)
+  local env="both"
+  if is_client_only_mod "$mod_filename"; then
+    env="client"
+    ((CLIENT_ONLY_MODS++))
+  elif is_server_only_mod "$mod_filename"; then
+    env="server"
+    ((SERVER_ONLY_MODS++))
+  else
+    ((UNIVERSAL_MODS++))
+  fi
+  
+  # Generate entry
+  cat << EOF
+    {
+      "path": "mods/$mod_filename",
+      "hashes": {
+        "sha1": "",
+        "sha512": ""
+      },
+      "env": {
+        "client": "$([ "$env" = "client" ] || [ "$env" = "both" ] && echo "required" || echo "unsupported")",
+        "server": "$([ "$env" = "server" ] || [ "$env" = "both" ] && echo "required" || echo "unsupported")"
+      },
+      "downloads": [
+        "$download_url"
+      ],
+      "fileSize": 0
+    }
+EOF
+}
+
 generate_manifest() {
   echo "- Generating manifest..."
   
@@ -1006,8 +1119,12 @@ generate_manifest() {
   # Find mod directory
   local effective_mods_dir="$MODS_DIR"
   if [ ! -d "$effective_mods_dir" ]; then
-    echo "- ERROR: No mods directory found at: $effective_mods_dir"
-    exit 1
+    echo "- WARNING: No mods directory found at: $effective_mods_dir"
+    echo "- This is expected in CI environments where mods are not tracked in Git"
+    echo "- Will generate manifest from mod_overrides.conf or use defaults"
+    # For CI builds, we'll use a different approach
+    generate_manifest_from_overrides
+    return
   fi
   
   echo "Scanning mods in: $effective_mods_dir"
@@ -1165,25 +1282,8 @@ generate_manifest() {
     TOTAL_MODS=$((TOTAL_MODS + 1))
   done
   
-  # Generate complete manifest optimized for Modrinth App
-  cat > modrinth.index.json << EOF
-{
-  "formatVersion": 1,
-  "game": "minecraft",
-  "versionId": "$CURRENT_VERSION",
-  "name": "$PROJECT_NAME",
-  "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
-  "files": [
-$(echo -e "$mod_entries")
-  ],
-  "dependencies": {
-    "minecraft": "$MINECRAFT_VERSION",
-    "$MODLOADER": "$NEOFORGE_VERSION"
-  }
-}
-EOF
-  
-  echo "+ Generated manifest with $file_count mod entries"
+  # Generate the complete manifest
+  generate_final_manifest "$mod_entries" "$file_count"
 }
 
 # ==================== PACK CREATION ====================
