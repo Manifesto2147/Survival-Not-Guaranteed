@@ -38,8 +38,8 @@ mrpack/
 .idea/
 *.iml
 
-# Generated .mrpack files (built from source)
-*.mrpack
+# Generated .mrpack files (built from source) - DISABLED for CI workflow
+# *.mrpack
 
 # OS-specific files
 .DS_Store
