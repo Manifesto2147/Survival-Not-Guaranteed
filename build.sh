@@ -10,7 +10,6 @@ echo "Building .mrpack with comprehensive mirror support..."
 
 # Configuration
 MODS_DIR="mods"
-MINECRAFT_MODS_DIR="minecraft/mods"
 CURSEFORGE_API_KEY="${CURSEFORGE_API_KEY:-}"
 PROJECT_NAME="Survival Not Guaranteed"
 MINECRAFT_VERSION="1.21.1"
@@ -372,6 +371,18 @@ get_manual_environment_override() {
         return
     fi
     
+    # Open Party & Claims - requires both client and server for full functionality
+    if [[ "$mod_name" == *"open-parties-and-claims"* ]] || [[ "$mod_name" == *"open_parties_and_claims"* ]]; then
+        echo "both"
+        return
+    fi
+    
+    # Spice of Life - food variety mod that works on both client and server
+    if [[ "$mod_name" == *"spice"* && "$mod_name" == *"life"* ]] || [[ "$mod_name" == *"spice_of_life"* ]]; then
+        echo "both"
+        return
+    fi
+    
     # Xaero's mods - work on both client and server
     if [[ "$mod_name" == *"xaeros_minimap"* ]] || [[ "$mod_name" == *"xaero"* && "$mod_name" == *"minimap"* ]]; then
         echo "both"
@@ -470,8 +481,8 @@ generate_content_hash() {
   local config_hash=""
   
   # Hash mod files
-  if [ -d "minecraft/mods" ]; then
-    mod_hash=$(find minecraft/mods -name "*.jar" -type f | sort | while read -r file; do basename "$file"; done | tr '\n' '|' | shasum | cut -d' ' -f1)
+  if [ -d "mods" ]; then
+    mod_hash=$(find mods -name "*.jar" -type f | sort | while read -r file; do basename "$file"; done | tr '\n' '|' | shasum | cut -d' ' -f1)
   fi
   
   # Hash key config files
@@ -481,8 +492,8 @@ generate_content_hash() {
   
   # Hash other modpack content (servers.dat)
   local other_hash=""
-  if [ -f "minecraft/servers.dat" ]; then
-    other_hash=$(shasum minecraft/servers.dat 2>/dev/null | cut -d' ' -f1)
+  if [ -f "servers.dat" ]; then
+    other_hash=$(shasum servers.dat 2>/dev/null | cut -d' ' -f1)
   fi
   
   # Return combined hash with separators for individual component checking
@@ -986,13 +997,9 @@ generate_manifest() {
   local file_count=0
   
   # Find mod directory
-  local effective_mods_dir=""
-  if [ -d "$MINECRAFT_MODS_DIR" ]; then
-    effective_mods_dir="$MINECRAFT_MODS_DIR"
-  elif [ -d "$MODS_DIR" ]; then
-    effective_mods_dir="$MODS_DIR"
-  else
-    echo "- ERROR: No mods directory found"
+  local effective_mods_dir="$MODS_DIR"
+  if [ ! -d "$effective_mods_dir" ]; then
+    echo "- ERROR: No mods directory found at: $effective_mods_dir"
     exit 1
   fi
   
@@ -1194,10 +1201,7 @@ create_mrpack() {
   mkdir -p "$temp_dir/overrides"
   
   # Copy configuration files to overrides/ (Modrinth App preference)
-  if [ -d "minecraft/config" ]; then
-    cp -r minecraft/config "$temp_dir/overrides/"
-    echo "  + minecraft/config/ → overrides/config/ (Modrinth App optimized)"
-  elif [ -d "config" ]; then
+  if [ -d "config" ]; then
     cp -r config "$temp_dir/overrides/"
     echo "  + config/ → overrides/config/ (Modrinth App optimized)"
   fi
@@ -1214,37 +1218,33 @@ create_mrpack() {
   done
   
   # Copy server list for community servers (Modrinth App handles this well)
-  if [ -f "minecraft/servers.dat" ]; then
-    cp "minecraft/servers.dat" "$temp_dir/overrides/servers.dat"
-    echo "  + minecraft/servers.dat → overrides/servers.dat (community servers)"
+  if [ -f "servers.dat" ]; then
+    cp "servers.dat" "$temp_dir/overrides/servers.dat"
+    echo "  + servers.dat → overrides/servers.dat (community servers)"
   fi
   
   # Modrinth App specific optimizations for shader configuration
   # These files need to be in overrides/ for proper initialization
   
   # Copy iris.properties with Modrinth App optimized settings
-  if [ -f "minecraft/config/iris.properties" ]; then
+  if [ -f "config/iris.properties" ]; then
     # Ensure config directory exists in overrides
-    mkdir -p "$temp_dir/overrides/config"
-    cp "minecraft/config/iris.properties" "$temp_dir/overrides/config/"
-    echo "  + minecraft/config/iris.properties → overrides/config/iris.properties (shader auto-enable)"
-  elif [ -f "config/iris.properties" ]; then
     mkdir -p "$temp_dir/overrides/config"
     cp "config/iris.properties" "$temp_dir/overrides/config/"
     echo "  + config/iris.properties → overrides/config/iris.properties (shader auto-enable)"
   fi
   
   # Copy additional shader configuration files for Modrinth App
-  if [ -f "minecraft/config/iris-excluded.json" ]; then
+  if [ -f "config/iris-excluded.json" ]; then
     mkdir -p "$temp_dir/overrides/config"
-    cp "minecraft/config/iris-excluded.json" "$temp_dir/overrides/config/"
-    echo "  + minecraft/config/iris-excluded.json → overrides/config/iris-excluded.json (iris config)"
+    cp "config/iris-excluded.json" "$temp_dir/overrides/config/"
+    echo "  + config/iris-excluded.json → overrides/config/iris-excluded.json (iris config)"
   fi
   
-  if [ -f "minecraft/config/sodium-options.json" ]; then
+  if [ -f "config/sodium-options.json" ]; then
     mkdir -p "$temp_dir/overrides/config"
-    cp "minecraft/config/sodium-options.json" "$temp_dir/overrides/config/"
-    echo "  + minecraft/config/sodium-options.json → overrides/config/sodium-options.json (performance)"
+    cp "config/sodium-options.json" "$temp_dir/overrides/config/"
+    echo "  + config/sodium-options.json → overrides/config/sodium-options.json (performance)"
   fi
   
   # Copy shader-specific options files
@@ -1255,20 +1255,15 @@ create_mrpack() {
   fi
   
   # Copy client options with GUI scale and performance settings
-  if [ -f "config/options.txt" ]; then
-    cp "config/options.txt" "$temp_dir/overrides/"
-    echo "  + config/options.txt → overrides/options.txt (client settings, GUI scale 3x)"
+  if [ -f "options.txt" ]; then
+    cp "options.txt" "$temp_dir/overrides/"
+    echo "  + options.txt → overrides/options.txt (client settings, GUI scale 3x)"
   fi
   
   # Include mods that couldn't be resolved
   if [ $PACK_INCLUDED -gt 0 ]; then
     mkdir -p "$temp_dir/mods"
-    local effective_mods_dir=""
-    if [ -d "$MINECRAFT_MODS_DIR" ]; then
-      effective_mods_dir="$MINECRAFT_MODS_DIR"
-    elif [ -d "$MODS_DIR" ]; then
-      effective_mods_dir="$MODS_DIR"
-    fi
+    local effective_mods_dir="$MODS_DIR"
     
     for mod_file in "$effective_mods_dir"/*.jar; do
       if [ ! -f "$mod_file" ]; then
@@ -1334,7 +1329,7 @@ generate_changelog() {
       prev_mods=$(git show HEAD~1:modrinth.index.json 2>/dev/null | jq -r '.files[].path' 2>/dev/null | sed 's|^mods/||' | sort || echo "")
     fi
     
-    local current_mods=$(find minecraft/mods -name "*.jar" -type f -exec basename {} \; | sort)
+    local current_mods=$(find mods -name "*.jar" -type f -exec basename {} \; | sort)
     
     # Find added mods
     if [ -n "$prev_mods" ]; then
@@ -1582,8 +1577,8 @@ main() {
     # Determine change type based on what triggered the build
     if [ -n "$GITHUB_ACTIONS" ] && [ "$DETECTED_CHANGE_TYPE" = "none" ]; then
       # In GitHub Actions, we can check the changed files
-      if git diff --quiet HEAD~1 -- minecraft/mods/ 2>/dev/null; then
-        if git diff --quiet HEAD~1 -- config/ minecraft/config/ 2>/dev/null; then
+      if git diff --quiet HEAD~1 -- mods/ 2>/dev/null; then
+        if git diff --quiet HEAD~1 -- config/ 2>/dev/null; then
           change_type="other"
         else
           change_type="config"

@@ -6,6 +6,13 @@ Welcome to a world that blends unforgiving survival mechanics with epic magic, d
 
 ---
 
+## 📖 Documentation
+
+For comprehensive technical documentation, build processes, and development guidelines, see:
+**[Complete System Documentation](docs/SYSTEM_DOCUMENTATION.md)**
+
+---
+
 ## 🛠️ Automated Mod Management System
 
 This modpack includes a comprehensive automated mod management system with the following features:
