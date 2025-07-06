@@ -10,10 +10,8 @@ debug/
 crash-reports/
 usercache.json
 usernamecache.json
-servers.dat
 servers.dat_old
 hs_err_pid*.log
-options.txt
 command_history.txt
 
 # Build artifacts

@@ -352,6 +352,8 @@ Survival Not Guaranteed/
 ├── [validate-directory-structure.sh](../validate-directory-structure.sh)
 ├── modrinth.index.json     # Modpack manifest
 ├── mod_overrides.conf      # URL overrides
+├── options.txt             # Minecraft client settings (GUI scale, performance)
+├── servers.dat             # Pre-configured community servers
 ├── README.md               # User documentation
 └── CHANGELOG.md            # Version history
 ```
@@ -370,7 +372,8 @@ Survival Not Guaranteed/
 ### Git Tracking Strategy
 
 The repository follows a hybrid approach:
-- **Configuration files**: Tracked in Git for version control
+- **Configuration files**: Tracked in Git for version control (config/, scripts/, shaderpacks/)
+- **Client settings**: Tracked in Git (options.txt, servers.dat) for consistent user experience
 - **Mod files**: Excluded from Git but monitored by build system
 - **Scripts and overrides**: Fully tracked for reproducibility
 - **Generated files**: Excluded (.mrpack, .content_hash, build artifacts)
@@ -378,6 +381,7 @@ The repository follows a hybrid approach:
 This approach ensures:
 - Repository remains lightweight (no large binary files)
 - Full reproducibility through external download URLs
+- Consistent client settings and server listings for all users
 - Efficient CI/CD with minimal transfer overhead
 - Complete audit trail of configuration changes
 
@@ -583,7 +587,7 @@ The project follows semantic versioning (MAJOR.MINOR.PATCH) with specific rules 
 
 The build system automatically determines version increments based on actual modpack changes:
 
-1. **Mod Content Analysis**: Compares mod list in `modrinth.index.json` against previous version
+1. **Remote Version Sources**: Uses GitHub releases and Modrinth versions as base (no local version checking)
 2. **Content Change Detection**: Analyzes if actual mods were added, removed, or significantly updated  
 3. **Configuration vs Content**: Distinguishes between config changes and mod content changes
 4. **Infrastructure Filtering**: Excludes Git, CI/CD, and documentation changes from version bumps
@@ -593,7 +597,7 @@ The build system automatically determines version increments based on actual mod
 - **PATCH bump**: Updating mod configurations, CraftTweaker scripts, or shader settings
 - **No bump**: Documentation updates, Git tracking fixes, CI/CD improvements
 
-**Key Principle**: Only changes that affect what players download and install trigger version increments.
+**Key Principle**: Only changes that affect what players download and install trigger version increments. Version detection relies on remote sources (GitHub/Modrinth) for consistency.
 
 ### Practical Versioning Examples
 

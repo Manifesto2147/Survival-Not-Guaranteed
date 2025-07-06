@@ -566,13 +566,7 @@ get_latest_version() {
     fi
   fi
   
-  # Get local version for comparison
-  local local_version=""
-  if [ -f "modrinth.index.json" ]; then
-    local_version=$(jq -r '.versionId' modrinth.index.json 2>/dev/null || echo "")
-  fi
-  
-  # Compare versions and find the highest
+  # Compare versions and find the highest (skip local version checking)
   local base_version=""
   local version_source=""
   
@@ -588,16 +582,10 @@ get_latest_version() {
     [ "$v1_num" -gt "$v2_num" ]
   }
   
-  # Start with a baseline
-  if [ -n "$local_version" ] && [ "$local_version" != "null" ]; then
-    base_version="$local_version"
-    version_source="local"
-    echo "- Found local version: $local_version"
-  else
-    base_version="3.5.15"
-    version_source="default"
-    echo "- No local version, using default: $base_version"
-  fi
+  # Start with a baseline (skip local version checking)
+  base_version="3.5.15"
+  version_source="default"
+  echo "- Using default base version: $base_version"
   
   # Check GitHub version
   if [ -n "$LATEST_GITHUB_VERSION" ] && [ "$LATEST_GITHUB_VERSION" != "null" ]; then

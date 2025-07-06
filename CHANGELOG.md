@@ -1,9 +1,12 @@
-Survival Not Guaranteed v3.13.0
+Survival Not Guaranteed v3.12.0
 
 Release Date: July 06, 2025
 Previous Version: 3.12.0
 
-MOD CHANGES
+OTHER CHANGES
+
+- Updated modpack components
+- General improvements and optimizations
 
 TECHNICAL DETAILS
 
