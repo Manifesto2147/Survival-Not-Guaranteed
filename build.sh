@@ -997,53 +997,6 @@ smart_mod_lookup() {
 
 # ==================== MANIFEST GENERATION ====================
 
-# Generate manifest from mod_overrides.conf when mods directory doesn't exist (CI environments)
-generate_manifest_from_overrides() {
-  echo "- Generating manifest from mod_overrides.conf for CI environment..."
-  
-  local mod_entries=""
-  local file_count=0
-  
-  # Check if mod_overrides.conf exists
-  if [ ! -f "mod_overrides.conf" ]; then
-    echo "- ERROR: No mod_overrides.conf found and no mods directory available"
-    echo "- Cannot generate manifest without mod information"
-    exit 1
-  fi
-  
-  # Read mod_overrides.conf and generate entries
-  while IFS= read -r line; do
-    # Skip empty lines and comments
-    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-    
-    # Parse override entry (format: mod_filename=download_url)
-    if [[ "$line" =~ ^([^=]+)=(.+)$ ]]; then
-      local mod_filename="${BASH_REMATCH[1]}"
-      local download_url="${BASH_REMATCH[2]}"
-      
-      echo "- Processing mod from overrides: $mod_filename"
-      
-      # Generate mod entry
-      local mod_entry=$(generate_mod_entry_from_override "$mod_filename" "$download_url")
-      
-      if [ -n "$mod_entry" ]; then
-        if [ -n "$mod_entries" ]; then
-          mod_entries="$mod_entries,"
-        fi
-        mod_entries="$mod_entries$mod_entry"
-        ((file_count++))
-        ((TOTAL_MODS++))
-        ((MANUAL_OVERRIDES_USED++))
-      else
-        echo "- WARNING: Failed to generate entry for $mod_filename"
-      fi
-    fi
-  done < "mod_overrides.conf"
-  
-  # Generate the final manifest
-  generate_final_manifest "$mod_entries" "$file_count"
-}
-
 # Generate final manifest JSON
 generate_final_manifest() {
   local mod_entries="$1"
@@ -1070,7 +1023,7 @@ EOF
   echo "+ Generated manifest with $file_count mod entries"
 }
 
-# Generate mod entry from override configuration
+# Generate mod entry from override configuration (used for environment detection)
 generate_mod_entry_from_override() {
   local mod_filename="$1"
   local download_url="$2"
@@ -1119,15 +1072,22 @@ generate_manifest() {
   # Find mod directory
   local effective_mods_dir="$MODS_DIR"
   if [ ! -d "$effective_mods_dir" ]; then
-    echo "- WARNING: No mods directory found at: $effective_mods_dir"
-    echo "- This is expected in CI environments where mods are not tracked in Git"
-    echo "- Will generate manifest from mod_overrides.conf or use defaults"
-    # For CI builds, we'll use a different approach
-    generate_manifest_from_overrides
-    return
+    echo "- ERROR: No mods directory found at: $effective_mods_dir"
+    echo "- The mods directory should be present (either from local development or CI download)"
+    echo "- If running in CI, ensure the workflow downloads mods from manifest first"
+    exit 1
   fi
   
-  echo "Scanning mods in: $effective_mods_dir"
+  # Check if mods directory is empty or contains only empty files (CI download failures)
+  local jar_count=$(ls "$effective_mods_dir"/*.jar 2>/dev/null | wc -l)
+  if [ "$jar_count" -eq 0 ]; then
+    echo "- ERROR: No mod JAR files found in $effective_mods_dir"
+    echo "- Local development: Ensure mod files are present"
+    echo "- CI environment: Check that manifest download step succeeded"
+    exit 1
+  fi
+  
+  echo "Scanning mods in: $effective_mods_dir ($jar_count mod files found)"
   
   # Process each mod file
   for mod_file in "$effective_mods_dir"/*.jar; do

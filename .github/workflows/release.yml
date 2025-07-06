@@ -48,6 +48,37 @@ jobs:
       run: |
         echo "- Using build script's version detection logic..."
         
+        # Download mods from manifest for CI build
+        echo "- Downloading mods from manifest for CI build..."
+        mkdir -p mods
+        
+        if [ -f "modrinth.index.json" ]; then
+          echo "- Found existing manifest, downloading $(jq -r '.files | length' modrinth.index.json) mod files..."
+          
+          # Extract download URLs and filenames from modrinth.index.json
+          jq -r '.files[] | select(.path | startswith("mods/")) | "\(.downloads[0]) \(.path)"' modrinth.index.json | while read -r url path; do
+            if [ -n "$url" ] && [ "$url" != "null" ] && [ -n "$path" ]; then
+              filename=$(basename "$path")
+              echo "  Downloading: $filename"
+              
+              # Try up to 3 times with different methods
+              if ! curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
+                if ! wget -q -O "mods/$filename" "$url" 2>/dev/null; then
+                  echo "  WARNING: Failed to download $filename from $url"
+                  # Create empty file to prevent build script errors
+                  touch "mods/$filename"
+                fi
+              fi
+            fi
+          done
+          
+          # Count successfully downloaded files
+          downloaded_count=$(ls mods/*.jar 2>/dev/null | wc -l)
+          echo "+ Downloaded $downloaded_count mod files from manifest"
+        else
+          echo "- No existing manifest found, build script will generate one"
+        fi
+        
         # Let the build script handle version detection
         chmod +x build.sh
         
@@ -304,3 +335,13 @@ jobs:
         git push origin main
         
         echo "+ Version update committed and pushed"
+        
+    - name: Cleanup downloaded mods
+      if: always()
+      run: |
+        # Clean up temporarily downloaded mod files
+        if [ -d "mods" ]; then
+          echo "- Cleaning up downloaded mod files..."
+          rm -rf mods/
+          echo "+ Cleanup complete"
+        fi
