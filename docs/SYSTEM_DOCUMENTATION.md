@@ -26,6 +26,13 @@ Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featurin
 - **Management**: Fully automated mod updates and dependency resolution
 - **Repository Strategy**: Lightweight repository with no binary mod files tracked
 
+### Recent Infrastructure Improvements (v3.12.1)
+- **Launcher Configuration**: Added cross-launcher RAM allocation and JVM optimization
+- **Epic Knights Environment Fix**: Resolved server compatibility issues with environment overrides
+- **Memory Management**: Implemented standards-compliant 4GB RAM allocation
+- **Profile Support**: Added support for Modrinth App, PrismLauncher, and MultiMC profiles
+- **JVM Optimization**: Integrated Aikar's flags for improved performance
+
 ### Recent Infrastructure Improvements (v3.12.0+)
 - **Git Optimization**: Removed mod files from repository tracking (131 files excluded)
 - **CI/CD Enhancement**: Implemented manifest-based CI builds with temporary mod download

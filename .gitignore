@@ -26,8 +26,6 @@ patchouli_data.json
 mods/
 
 # PrismLauncher-specific files (keeping minecraft/ as it contains the actual mods)
-instance.cfg
-mmc-pack.json
 minecraft/saves/
 minecraft/logs/
 minecraft/crash-reports/
@@ -40,8 +38,11 @@ mrpack/
 .idea/
 *.iml
 
-# Generated files
+# Generated .mrpack files (built from source)
 *.mrpack
 
 # OS-specific files
 .DS_Store
+
+# Modrinth cache
+.modrinth_cache/

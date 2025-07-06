@@ -63,19 +63,42 @@ This modpack includes a comprehensive automated mod management system with the f
 
 ## Getting Started
 
-### Installation
+### Installation & Setup
+
+#### Recommended: Modrinth App
 1. Download the latest `.mrpack` file from [Releases](https://github.com/Manifesto2147/Survival-Not-Guaranteed/releases)
-2. Import into your preferred launcher:
-   - [Modrinth App](https://modrinth.com/app) (Recommended)
-   - [PrismLauncher](https://prismlauncher.org/)
-   - [MultiMC](https://multimc.org/)
-   - ATLauncher, Curseforge App, or other compatible launchers
+2. Open Modrinth App
+3. Click "Add Instance" → "From File"
+4. Select the downloaded `.mrpack` file
+5. **Automatic Configuration**: Modrinth App will automatically configure 4GB RAM allocation and optimal settings
+
+#### Alternative Launchers
+
+**PrismLauncher / MultiMC**
+- Add Instance → Import → Browse for `.mrpack` file
+- The modpack includes `instance.cfg` for automatic 4GB RAM configuration
+- JVM arguments are pre-configured for optimal performance
+
+**Other Launchers**
+- Import the `.mrpack` file using your launcher's modpack import feature
+- **Manual RAM Setup**: If automatic configuration doesn't work, manually allocate 4GB RAM
+- Use the included `launcher_profiles.json` as a reference for optimal JVM arguments
 
 ### System Requirements
 - **Minecraft**: 1.21.1
 - **Modloader**: NeoForge 21.1.180+
-- **RAM**: 6-8GB recommended (4GB minimum)
-- **Storage**: 2GB for installation
+- **RAM**: 4GB minimum (8GB recommended for optimal performance)
+- **Java**: Java 21+ required
+- **Storage**: 2GB free space for mod downloads
+- **Cross-Platform**: Windows, macOS, Linux supported
+
+### Pre-Configured Features
+The modpack includes automatic configuration for:
+- **Memory**: 4GB RAM allocation via launcher profiles
+- **Performance**: Optimized JVM arguments (Aikar's flags)
+- **Shaders**: MakeUp-UltraFast enabled by default
+- **GUI Scale**: 3x for better visibility
+- **Community Server**: Pre-loaded server list
 
 ### First Steps
 1. **Prepare for the elements** - Craft temperature-resistant gear early

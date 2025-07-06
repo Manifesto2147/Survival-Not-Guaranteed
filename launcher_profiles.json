@@ -1,0 +1,39 @@
+{
+  "name": "Survival Not Guaranteed",
+  "description": "A challenging survival modpack featuring magic, technology, and culinary adventures",
+  "version": "3.12.1",
+  "gameVersion": "1.21.1",
+  "modLoader": "neoforge",
+  "modLoaderVersion": "21.1.180",
+  "java": {
+    "component": "java-runtime-epsilon",
+    "majorVersion": 17
+  },
+  "arguments": {
+    "jvm": [
+      "-Xms4G",
+      "-Xmx4G",
+      "-XX:+UseG1GC",
+      "-XX:+ParallelRefProcEnabled",
+      "-XX:MaxGCPauseMillis=200",
+      "-XX:+UnlockExperimentalVMOptions",
+      "-XX:+DisableExplicitGC",
+      "-XX:+AlwaysPreTouch",
+      "-XX:G1HeapWastePercent=5",
+      "-XX:G1MixedGCCountTarget=4",
+      "-XX:InitiatingHeapOccupancyPercent=15",
+      "-XX:G1MixedGCLiveThresholdPercent=90",
+      "-XX:G1RSetUpdatingPauseTimePercent=5",
+      "-XX:SurvivorRatio=32",
+      "-XX:+PerfDisableSharedMem",
+      "-XX:MaxTenuringThreshold=1",
+      "-Dusing.aikars.flags=https://mcflags.emc.gs",
+      "-Daikars.new.flags=true"
+    ]
+  },
+  "memory": {
+    "min": 4096,
+    "max": 4096,
+    "recommended": 4096
+  }
+}

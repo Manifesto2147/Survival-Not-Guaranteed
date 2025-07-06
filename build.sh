@@ -393,6 +393,12 @@ get_manual_environment_override() {
         return
     fi
     
+    # Epic Knights - override to make it universal for server compatibility
+    if [[ "$mod_name" == *"epic-knights"* ]] || [[ "$mod_name" == *"epic_knights"* ]]; then
+        echo "both"
+        return
+    fi
+    
     # Known universal mods that might be misclassified
     if [[ "$mod_name" == *"creativecore"* ]]; then
         echo "both"
@@ -1325,6 +1331,22 @@ create_mrpack() {
   if [ -f "options.txt" ]; then
     cp "options.txt" "$temp_dir/overrides/"
     echo "  + options.txt → overrides/options.txt (client settings, GUI scale 3x)"
+  fi
+  
+  # Copy launcher configuration files for auto RAM allocation
+  if [ -f "instance.cfg" ]; then
+    cp "instance.cfg" "$temp_dir/overrides/"
+    echo "  + instance.cfg → overrides/instance.cfg (PrismLauncher: 4GB auto-allocation)"
+  fi
+  
+  if [ -f "modrinth.launcher.json" ]; then
+    cp "modrinth.launcher.json" "$temp_dir/overrides/"
+    echo "  + modrinth.launcher.json → overrides/modrinth.launcher.json (Modrinth App: 4GB auto-allocation)"
+  fi
+  
+  if [ -f "launcher_profiles.json" ]; then
+    cp "launcher_profiles.json" "$temp_dir/overrides/"
+    echo "  + launcher_profiles.json → overrides/launcher_profiles.json (Minecraft Launcher: 4GB auto-allocation)"
   fi
   
   # Include mods that couldn't be resolved
