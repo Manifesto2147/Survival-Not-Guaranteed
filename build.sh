@@ -480,9 +480,10 @@ generate_content_hash() {
   local mod_hash=""
   local config_hash=""
   
-  # Hash mod files
-  if [ -d "mods" ]; then
-    mod_hash=$(find mods -name "*.jar" -type f | sort | while read -r file; do basename "$file"; done | tr '\n' '|' | shasum | cut -d' ' -f1)
+  # Hash mod files by examining the modrinth.index.json instead of filesystem
+  # This prevents infrastructure changes from being detected as mod changes
+  if [ -f "modrinth.index.json" ]; then
+    mod_hash=$(jq -r '.files[] | select(.path | startswith("mods/")) | .path' modrinth.index.json 2>/dev/null | sort | tr '\n' '|' | shasum | cut -d' ' -f1)
   fi
   
   # Hash key config files
@@ -503,18 +504,18 @@ generate_content_hash() {
 # Increment version number based on change type
 increment_version() {
   local version="$1"
-  local change_type="$2"  # "mod", "config", or "other"
+  local change_type="$2"  # "mod", "config", "other", or "infrastructure"
   
   local major=$(echo "$version" | cut -d. -f1)
   local minor=$(echo "$version" | cut -d. -f2)
   local patch=$(echo "$version" | cut -d. -f3)
   
   if [ "$change_type" = "mod" ]; then
-    # Mod changes increment minor version and reset patch
+    # Actual mod changes increment minor version and reset patch
     minor=$((minor + 1))
     patch=0
   else
-    # Config and other changes increment patch version
+    # Config, other, and infrastructure changes increment patch version
     patch=$((patch + 1))
   fi
   
@@ -651,7 +652,25 @@ get_latest_version() {
     
     # Determine change type
     local change_type="config"  # Default to config change
-    if [ "$current_mod_hash" != "$stored_mod_hash" ]; then
+    
+    # Check if this is an infrastructure change (Git-related, workflow changes, etc.)
+    local is_infrastructure_change="false"
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      # Check if recent changes are primarily infrastructure
+      local recent_changes=$(git diff --name-only HEAD~1 2>/dev/null || echo "")
+      if echo "$recent_changes" | grep -qE "^(\.gitignore|\.github/|build\.sh|manage-modpack\.sh|docs/|README\.md|CHANGELOG\.md)"; then
+        # Check if mod files are the same in the manifest
+        local manifest_mod_count=$(jq -r '.files[] | select(.path | startswith("mods/")) | .path' modrinth.index.json 2>/dev/null | wc -l)
+        if [ "$manifest_mod_count" -gt 0 ]; then
+          is_infrastructure_change="true"
+        fi
+      fi
+    fi
+    
+    if [ "$is_infrastructure_change" = "true" ]; then
+      change_type="infrastructure"
+      echo "- Infrastructure changes detected (Git/automation fixes)"
+    elif [ "$current_mod_hash" != "$stored_mod_hash" ]; then
       change_type="mod"
       echo "- Mod changes detected"
     elif [ "$current_config_hash" != "$stored_config_hash" ]; then

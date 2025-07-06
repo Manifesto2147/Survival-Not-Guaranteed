@@ -4,19 +4,24 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'config/**'
-      - 'mods/**'
-      - 'minecraft/config/**'
-      - 'minecraft/scripts/**'
-      - 'minecraft/shaderpacks/**'
-      - 'minecraft/resourcepacks/**'
-      - 'minecraft/servers.dat'
-      - 'scripts/**'
-      - 'shaderpacks/**'
-      - 'resourcepacks/**'
-      - 'modrinth.index.json'
-      - 'pack.toml'
-      - 'mod_overrides.conf'
+      # Modpack content changes (trigger releases)
+      - 'config/**'          # Mod configurations (PATCH)
+      - 'scripts/**'         # CraftTweaker scripts (PATCH)
+      - 'shaderpacks/**'     # Shader packs (PATCH)
+      - 'modrinth.index.json' # Mod manifest (MINOR for mod changes, PATCH for config)
+      - 'mod_overrides.conf' # URL overrides (PATCH)
+      # Note: mods/** excluded from Git but monitored by build system
+    paths-ignore:
+      # Infrastructure changes (no release needed)
+      - 'docs/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - '.gitignore'
+      - 'build.sh'
+      - 'manage-modpack.sh'
+      - 'fix-data-validation-errors.sh'
+      - 'validate-directory-structure.sh'
+      - 'tools/**'
   workflow_dispatch:
 
 jobs:

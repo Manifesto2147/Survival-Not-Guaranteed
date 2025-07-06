@@ -8,21 +8,30 @@
 4. [Automation System](#automation-system)
 5. [Management Tools](#management-tools)
 6. [Build System](#build-system)
-7. [Deployment Pipeline](#deployment-pipeline)
-8. [File Structure](#file-structure)
-9. [Configuration Management](#configuration-management)
-10. [Troubleshooting and Maintenance](#troubleshooting-and-maintenance)
+7. [Version Management](#version-management)
+8. [Deployment Pipeline](#deployment-pipeline)
+9. [File Structure](#file-structure)
+10. [Configuration Management](#configuration-management)
+11. [Troubleshooting and Maintenance](#troubleshooting-and-maintenance)
 
 ## System Overview
 
-Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featuring 141+ carefully curated mods. The project employs a sophisticated automated management system designed for zero-intervention operations, comprehensive dependency management, and reliable deployment.
+Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featuring 131 carefully curated mods. The project employs a sophisticated automated management system designed for zero-intervention operations, comprehensive dependency management, and reliable deployment.
 
 ### Key Characteristics
 - **Target Audience**: Players seeking challenging survival gameplay with fantasy RPG elements
-- **Mod Count**: 141 mods (119 universal, 11 client-only, 11 server-only)
+- **Mod Count**: 131 mods (121 universal, 10 client-only)
 - **Distribution**: .mrpack format with 100% external downloads
 - **Architecture**: Multi-platform with automated CI/CD pipeline
 - **Management**: Fully automated mod updates and dependency resolution
+- **Repository Strategy**: Lightweight repository with no binary mod files tracked
+
+### Recent Infrastructure Improvements (v3.13.0)
+- **Git Optimization**: Removed mod files from repository tracking (131 files excluded)
+- **CI/CD Enhancement**: Fixed GitHub Actions workflow path references
+- **Build System**: Improved version detection and change analysis
+- **Documentation**: Updated to reflect actual system architecture
+- **Maintainability**: Enhanced troubleshooting and maintenance procedures
 
 ## Branch Architecture
 
@@ -148,11 +157,31 @@ Advanced automatic update system with:
 #### Release Pipeline ([.github/workflows/release.yml](../.github/workflows/release.yml))
 Triggered on main branch changes:
 
-1. **Change Analysis**: Determines version bump type based on modified files
+### GitHub Actions Workflow
+
+#### Release Pipeline ([.github/workflows/release.yml](../.github/workflows/release.yml))
+Triggered on main branch changes:
+
+1. **Change Analysis**: Determines version bump type based on modified files and change patterns
 2. **Build Process**: Executes [build.sh](../build.sh) to generate .mrpack
 3. **Validation**: Runs comprehensive tests and validation
 4. **Release Creation**: Creates GitHub release with artifacts
 5. **Distribution**: Uploads to Modrinth and other platforms
+
+**Version Bump Logic:**
+- **MAJOR (X.0.0)**: Breaking changes (Minecraft updates, major incompatible changes)
+- **MINOR (X.Y.0)**: Modpack content changes (mods added/removed, significant mod updates)
+- **PATCH (X.Y.Z)**: Configuration, scripts, bug fixes, infrastructure (no mod content changes)
+
+**Trigger Paths:**
+- `config/**` - Configuration changes
+- `mods/**` - Mod additions/removals (triggers GitHub Actions)
+- `scripts/**` - CraftTweaker script changes
+- `shaderpacks/**` - Shader pack changes
+- `modrinth.index.json` - Manifest updates
+- `mod_overrides.conf` - URL override changes
+
+**Note**: The `mods/` directory is excluded from Git tracking but monitored by the build system for changes.
 
 #### Development Pipeline ([.github/workflows/develop.yml](../.github/workflows/develop.yml))
 Triggered on develop branch changes:
@@ -282,8 +311,9 @@ esac
 ## Deployment Pipeline
 
 ### Version Management
-- **Semantic Versioning**: MAJOR.MINOR.PATCH format
-- **Auto-increment**: Based on change analysis
+- **Semantic Versioning**: MAJOR.MINOR.PATCH format focused on modpack content
+- **Content-Driven**: Version increments only for changes affecting the modpack itself
+- **Smart Detection**: Distinguishes between mod content and configuration changes
 - **Cross-platform**: Consistent versioning across branches
 
 ### Release Process
@@ -331,11 +361,25 @@ Survival Not Guaranteed/
 **/.github/workflows/**: Automation and CI/CD pipeline definitions
 **/docs/**: Comprehensive system documentation
 **/config/**: PrismLauncher-specific configuration files
-**/mods/**: Mod JAR files (excluded from Git, populated by build system)
+**/mods/**: Mod JAR files (excluded from Git tracking, populated by build system)
 **/scripts/**: CraftTweaker scripts
 **/shaderpacks/**: Shader files
 **/tools/**: Advanced management utilities
 **Root Level**: Primary scripts and configuration files
+
+### Git Tracking Strategy
+
+The repository follows a hybrid approach:
+- **Configuration files**: Tracked in Git for version control
+- **Mod files**: Excluded from Git but monitored by build system
+- **Scripts and overrides**: Fully tracked for reproducibility
+- **Generated files**: Excluded (.mrpack, .content_hash, build artifacts)
+
+This approach ensures:
+- Repository remains lightweight (no large binary files)
+- Full reproducibility through external download URLs
+- Efficient CI/CD with minimal transfer overhead
+- Complete audit trail of configuration changes
 
 ## Configuration Management
 
@@ -393,6 +437,38 @@ Mods are classified into three categories:
 2. Update [modrinth.index.json](../modrinth.index.json) with missing dependencies
 3. Verify mod versions are compatible
 4. Check for functional equivalents (e.g., ColdSweat for ToughAsNails)
+
+#### Git Tracking Issues
+**Symptom**: Mods directory appears in Git status or repository size is too large
+**Solution**:
+1. Verify `.gitignore` includes `mods/` entry
+2. Remove mods from tracking: `git rm -r --cached mods/`
+3. Check ignored files: `git status --ignored`
+4. Ensure `mods/` appears in ignored files list
+
+#### GitHub Actions Not Triggering
+**Symptom**: Workflows don't run when mods are changed
+**Solution**:
+1. Check workflow paths in `.github/workflows/`
+2. Ensure paths match actual directory structure
+3. Verify `mods/**` is included in workflow triggers
+4. Check if workflow files have correct permissions
+
+#### Version Detection Issues
+**Symptom**: Build system assigns incorrect version numbers
+**Solution**:
+1. Check if manual version is set in `modrinth.index.json`
+2. Verify content hash file `.content_hash` exists
+3. Review change detection logic for edge cases
+4. Use manual version override if automatic detection fails
+
+#### Infrastructure vs Content Changes
+**Symptom**: Infrastructure changes trigger minor version bumps
+**Solution**:
+1. Distinguish between actual mod changes and Git/CI changes
+2. Use manual version control for infrastructure fixes
+3. Update content hash to reflect actual state
+4. Document infrastructure changes separately from content changes
 
 ### Maintenance Tasks
 
@@ -476,3 +552,81 @@ cp backup/auto-updates/TIMESTAMP/modrinth.index.json ../
 | User Guide | End-user documentation | [README.md](../README.md) |
 
 This documentation provides a complete reference for understanding, maintaining, and extending the Survival Not Guaranteed modpack management system. The architecture is designed for reliability, automation, and ease of maintenance while supporting both development and production workflows.
+
+## Version Management
+
+### Semantic Versioning Strategy
+
+The project follows semantic versioning (MAJOR.MINOR.PATCH) with specific rules focused on modpack content:
+
+**MAJOR (X.0.0)**: Breaking changes that affect compatibility
+- Minecraft version updates (e.g., 1.20.x → 1.21.x)
+- NeoForge major version changes
+- Breaking configuration changes that require world resets
+
+**MINOR (X.Y.0)**: Modpack content changes
+- New mods added to the pack
+- Mods removed from the pack
+- Mod version updates that add/remove significant features
+- Changes that affect gameplay mechanics
+
+**PATCH (X.Y.Z)**: Configuration and maintenance (no modpack content changes)
+- Configuration file updates (mod configs, scripts)
+- Bug fixes and optimizations
+- Infrastructure improvements (Git, CI/CD, documentation)
+- Dependency updates without functional changes
+- Performance tuning and stability improvements
+
+**Key Principle**: Version increments only when the modpack itself changes. Infrastructure, documentation, or configuration tweaks are patch releases.
+
+### Version Detection Logic
+
+The build system automatically determines version increments based on actual modpack changes:
+
+1. **Mod Content Analysis**: Compares mod list in `modrinth.index.json` against previous version
+2. **Content Change Detection**: Analyzes if actual mods were added, removed, or significantly updated  
+3. **Configuration vs Content**: Distinguishes between config changes and mod content changes
+4. **Infrastructure Filtering**: Excludes Git, CI/CD, and documentation changes from version bumps
+
+**Version Trigger Examples:**
+- **MINOR bump**: Adding/removing a mod JAR file to/from the pack
+- **PATCH bump**: Updating mod configurations, CraftTweaker scripts, or shader settings
+- **No bump**: Documentation updates, Git tracking fixes, CI/CD improvements
+
+**Key Principle**: Only changes that affect what players download and install trigger version increments.
+
+### Practical Versioning Examples
+
+**MINOR Version Increments (3.X.0):**
+```bash
+# These changes trigger minor version bumps
+- Adding JEI mod to the pack                    → 3.13.0 → 3.14.0
+- Removing Sodium for performance testing       → 3.14.0 → 3.15.0  
+- Updating Create mod from 1.5 to 1.6          → 3.15.0 → 3.16.0
+```
+
+**PATCH Version Increments (3.0.X):**
+```bash
+# These changes trigger patch version bumps  
+- Updating JEI configuration settings          → 3.13.0 → 3.13.1
+- Adding new CraftTweaker recipes              → 3.13.1 → 3.13.2
+- Changing shader pack settings                → 3.13.2 → 3.13.3
+- Fixing mod configuration conflicts           → 3.13.3 → 3.13.4
+```
+
+**No Version Change:**
+```bash
+# These changes do NOT trigger version bumps
+- Updating documentation                       → 3.13.0 (no change)
+- Fixing GitHub Actions workflows             → 3.13.0 (no change)
+- Improving build scripts                     → 3.13.0 (no change)
+- Updating .gitignore file                    → 3.13.0 (no change)
+```
+
+**MAJOR Version Increments (X.0.0):**
+```bash  
+# Reserved for breaking changes
+- Updating from Minecraft 1.21.1 to 1.22.0   → 3.13.0 → 4.0.0
+- Major NeoForge version change               → 4.0.0 → 5.0.0
+- Complete modpack overhaul                   → 5.0.0 → 6.0.0
+```

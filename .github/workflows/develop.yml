@@ -4,30 +4,30 @@ on:
   push:
     branches: [ develop ]
     paths:
-      - 'config/**'
-      - 'mods/**'
-      - 'minecraft/config/**'
-      - 'minecraft/scripts/**'
-      - 'minecraft/shaderpacks/**'
-      - 'minecraft/resourcepacks/**'
-      - 'minecraft/servers.dat'
-      - 'scripts/**'
-      - 'shaderpacks/**'
-      - 'resourcepacks/**'
-      - 'modrinth.index.json'
-      - 'pack.toml'
-      - 'mod_overrides.conf'
-      - '.github/workflows/develop.yml'
+      # Modpack content changes (for development testing)
+      - 'config/**'          # Mod configurations
+      - 'scripts/**'         # CraftTweaker scripts
+      - 'shaderpacks/**'     # Shader packs
+      - 'modrinth.index.json' # Mod manifest
+      - 'mod_overrides.conf' # URL overrides
+      - '.github/workflows/develop.yml' # Workflow changes
+      # Note: mods/** excluded from Git but monitored by build system
+    paths-ignore:
+      # Infrastructure changes (still test but don't auto-build)
+      - 'docs/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - '.gitignore'
   pull_request:
     branches: [ develop ]
     paths:
+      # Same paths as push for PR validation
       - 'config/**'
-      - 'mods/**'
-      - 'minecraft/config/**'
-      - 'minecraft/scripts/**'
-      - 'minecraft/shaderpacks/**'
-      - 'minecraft/resourcepacks/**'
-      - 'minecraft/servers.dat'
+      - 'scripts/**'
+      - 'shaderpacks/**'
+      - 'modrinth.index.json'
+      - 'mod_overrides.conf'
+      - '.github/workflows/develop.yml'
       - 'scripts/**'
       - 'shaderpacks/**'
       - 'resourcepacks/**'
