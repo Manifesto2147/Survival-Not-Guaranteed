@@ -48,7 +48,7 @@ jobs:
       run: |
         echo "- Using build script's version detection logic..."
         
-        # Download mods from manifest for CI build
+        # Download mods from manifest for CI build (Manifest-Based Mod Acquisition)
         echo "- Downloading mods from manifest for CI build..."
         mkdir -p mods
         
@@ -61,12 +61,11 @@ jobs:
               filename=$(basename "$path")
               echo "  Downloading: $filename"
               
-              # Try up to 3 times with different methods
+              # Try to download the file, but don't create empty files on failure
               if ! curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
                 if ! wget -q -O "mods/$filename" "$url" 2>/dev/null; then
                   echo "  WARNING: Failed to download $filename from $url"
-                  # Create empty file to prevent build script errors
-                  touch "mods/$filename"
+                  # Don't create empty files - let the build script handle missing files
                 fi
               fi
             fi
