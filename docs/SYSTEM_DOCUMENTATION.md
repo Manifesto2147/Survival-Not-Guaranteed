@@ -26,8 +26,13 @@ Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featurin
 - **Management**: Fully automated mod updates and dependency resolution
 - **Repository Strategy**: Lightweight repository with no binary mod files tracked
 
-### Recent Infrastructure Improvements (v3.13.0)
+### Recent Infrastructure Improvements (v3.13.0+)
 - **Git Optimization**: Removed mod files from repository tracking (131 files excluded)
+- **CI/CD Enhancement**: Implemented manifest-based CI builds with temporary mod download
+- **Build System**: Dual-mode operation for local development and CI automation
+- **Workflow Optimization**: Automated mod acquisition from manifest URLs in CI
+- **Documentation**: Updated to reflect manifest-driven development workflow
+- **Legal Compliance**: Enhanced mod licensing compliance with official-source-only downloads
 - **CI/CD Enhancement**: Fixed GitHub Actions workflow path references
 - **Build System**: Improved version detection and change analysis
 - **Documentation**: Updated to reflect actual system architecture
@@ -160,13 +165,15 @@ Triggered on main branch changes:
 ### GitHub Actions Workflow
 
 #### Release Pipeline ([.github/workflows/release.yml](../.github/workflows/release.yml))
-Triggered on main branch changes:
+Triggered on main branch changes or manual dispatch:
 
-1. **Change Analysis**: Determines version bump type based on modified files and change patterns
-2. **Build Process**: Executes [build.sh](../build.sh) to generate .mrpack
-3. **Validation**: Runs comprehensive tests and validation
-4. **Release Creation**: Creates GitHub release with artifacts
-5. **Distribution**: Uploads to Modrinth and other platforms
+1. **Manifest-Based Mod Download**: Downloads mod JARs from existing manifest URLs to temporary mods directory
+2. **Change Analysis**: Determines version bump type based on modified files and change patterns  
+3. **Build Process**: Executes [build.sh](../build.sh) to generate .mrpack with full mod scanning
+4. **Validation**: Runs comprehensive tests and validation
+5. **Release Creation**: Creates GitHub release with artifacts
+6. **Distribution**: Uploads to Modrinth and other platforms
+7. **Cleanup**: Removes temporarily downloaded mod files
 
 **Version Bump Logic:**
 - **MAJOR (X.0.0)**: Breaking changes (Minecraft updates, major incompatible changes)
@@ -244,15 +251,20 @@ Triggered on develop branch changes:
 
 ## Build System
 
+## Build System
+
 ### Build Process Flow
 
+The build system operates in two distinct modes depending on the environment:
+
+#### Local Development Mode
 1. **Initialization**
    - Environment setup and dependency checking
    - Cache directory creation
    - Statistics initialization
 
 2. **Mod Discovery**
-   - Scan mods directory for .jar files
+   - Scan existing mods directory for .jar files
    - Extract mod metadata from filenames
    - Generate potential mod slugs for API queries
 
@@ -273,7 +285,22 @@ Triggered on develop branch changes:
    - Set environment specifications
    - Add metadata and version information
 
-6. **Package Creation**
+#### CI/Automation Mode
+1. **Manifest-Based Mod Acquisition**
+   - Download mod JARs from existing manifest URLs
+   - Create temporary mods directory
+   - Verify download success for build process
+
+2. **Standard Build Process**
+   - Execute same mod discovery and analysis as local mode
+   - Generate updated manifest with new version
+   - Create .mrpack with current configurations
+
+3. **Cleanup**
+   - Remove temporarily downloaded mod files
+   - Preserve only the generated artifacts
+
+### Package Creation (Both Modes)
    - Generate .mrpack file with overrides only
    - Exclude mod files (100% external downloads)
    - Include configuration and resource files
@@ -307,6 +334,30 @@ case "$filename" in
         ;;
 esac
 ```
+
+## Recommended Development Workflow
+
+### Local Development Process
+1. **Mod Testing**: Add/remove/update mod JARs in local `mods/` directory
+2. **Configuration**: Modify configs, scripts, shaders as needed
+3. **Local Build**: Run `./build.sh` to generate updated manifest and test .mrpack
+4. **Testing**: Import generated .mrpack into launcher to verify functionality
+5. **Commit Changes**: Commit updated `modrinth.index.json` and any config changes
+6. **Push**: Push to repository to trigger automated CI build and release
+
+### CI Automation Flow
+1. **Trigger**: Push to main branch or manual workflow dispatch
+2. **Download**: CI downloads mod JARs from committed manifest URLs
+3. **Build**: Runs full build process with temporary mod files
+4. **Release**: Creates GitHub release and uploads to distribution platforms
+5. **Cleanup**: Removes temporary mod files, leaving only artifacts
+
+### Key Benefits
+- **Local Testing**: Full mod testing capability during development
+- **Repository Efficiency**: No large binary files tracked in Git
+- **Legal Compliance**: Mods downloaded from official sources only
+- **Automation**: Zero-intervention CI builds from committed manifests
+- **Reproducibility**: Exact mod versions specified in manifest
 
 ## Deployment Pipeline
 
