@@ -81,3 +81,74 @@ The latest build script now includes verification steps that confirm both files 
 ### Known Working Solutions
 
 The `.mrpack` file structure is confirmed to be correct according to the Modrinth specification. The issue appears to be with the launcher's import process, not the pack structure itself.
+
+## New Workflow Issues (v3.12.5+)
+
+### Issue: CI fails with "No .mrpack file found"
+
+**Problem**: The streamlined CI workflow expects pre-built `.mrpack` files but can't find them.
+
+**Cause**: `.mrpack` files weren't committed to the repository or `.gitignore` is still excluding them.
+
+**Solution**:
+1. Build locally: `./build.sh`
+2. Commit the generated `.mrpack`: `git add *.mrpack && git commit -m "Add built modpack"`
+3. Verify `.gitignore` doesn't exclude `*.mrpack` files
+
+### Issue: CI version bump not working correctly
+
+**Problem**: CI creates releases with incorrect version numbers.
+
+**Debugging**:
+1. Check the last release tag: `git describe --tags --abbrev=0`
+2. Verify manifest version: `jq -r '.versionId' modrinth.index.json`
+3. Look at changed files: `git diff --name-only HEAD~1 HEAD`
+
+**Common fixes**:
+- Ensure `modrinth.index.json` contains a valid version
+- Check that git tags follow `v1.2.3` format
+- Verify file changes trigger appropriate version bump logic
+
+### Issue: Dependencies missing in released modpack
+
+**Problem**: Mods like uranus or jupiter are missing from the final release.
+
+**Root Cause**: This was the main issue with the old CI approach. The new workflow eliminates this.
+
+**Solution with new workflow**:
+1. **Build locally** where all dependencies are available
+2. Test the generated `.mrpack` locally to ensure dependencies work
+3. Commit the working `.mrpack` file
+4. CI will validate and distribute the exact same file you tested
+
+### Issue: Local build vs CI build differences
+
+**Problem**: Local builds work but CI releases don't.
+
+**New workflow advantage**: This issue is eliminated because CI no longer rebuilds - it validates and distributes your local build.
+
+**If still experiencing issues**:
+1. Verify you're committing the `.mrpack` file: `git ls-files | grep mrpack`
+2. Check the workflow uses validation mode: Look for "Validating pre-built modpack" in CI logs
+3. Ensure no legacy CI build steps are running
+
+## Legacy Workflow Issues (Deprecated v3.12.4 and earlier)
+
+### Issue: Missing mod dependencies in CI builds
+
+**Problem**: CI-generated modpacks missing critical dependencies like uranus/jupiter for Ice and Fire CE.
+
+**Legacy cause**: CI downloaded mods from manifest, but some dependencies weren't in the manifest.
+
+**Resolution**: **Upgrade to v3.12.5+ streamlined workflow** - this issue is completely eliminated.
+
+### Issue: CI mod download failures
+
+**Problem**: CI fails when downloading mods from external URLs.
+
+**Legacy causes**:
+- Network timeouts or rate limiting
+- Changed download URLs
+- Unavailable mod files
+
+**Resolution**: **Upgrade to v3.12.5+ streamlined workflow** - no more mod downloads in CI.

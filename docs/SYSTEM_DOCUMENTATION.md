@@ -166,36 +166,75 @@ Advanced automatic update system with:
 
 ### GitHub Actions Workflow
 
-#### Release Pipeline ([.github/workflows/release.yml](../.github/workflows/release.yml))
-Triggered on main branch changes:
+#### Streamlined Release Pipeline ([.github/workflows/release.yml](../.github/workflows/release.yml))
+**New Architecture (v3.12.5+)**: Validation-based CI instead of rebuilding
 
-### GitHub Actions Workflow
+**Workflow Philosophy:**
+- **Local Build Authority**: Developers build locally with full mod access (including dependencies like uranus/jupiter)
+- **CI Validation**: GitHub Actions validates existing artifacts and handles distribution
+- **Smart Versioning**: Automatic version detection based on file changes
+- **Fast Deployment**: ~2 minutes instead of 5-10 minutes
 
-#### Release Pipeline ([.github/workflows/release.yml](../.github/workflows/release.yml))
-Triggered on main branch changes or manual dispatch:
+**Workflow Steps:**
 
-1. **Manifest-Based Mod Download**: Downloads mod JARs from existing manifest URLs to temporary mods directory
-2. **Change Analysis**: Determines version bump type based on modified files and change patterns  
-3. **Build Process**: Executes [build.sh](../build.sh) to generate .mrpack with full mod scanning
-4. **Validation**: Runs comprehensive tests and validation
-5. **Release Creation**: Creates GitHub release with artifacts
-6. **Distribution**: Uploads to Modrinth and other platforms
-7. **Cleanup**: Removes temporarily downloaded mod files
+1. **Pre-built Artifact Validation**
+   - Validates existing `.mrpack` file in repository
+   - Confirms `modrinth.index.json` manifest exists
+   - Extracts current version from manifest
 
-**Version Bump Logic:**
-- **MAJOR (X.0.0)**: Breaking changes (Minecraft updates, major incompatible changes)
-- **MINOR (X.Y.0)**: Modpack content changes (mods added/removed, significant mod updates)
-- **PATCH (X.Y.Z)**: Configuration, scripts, bug fixes, infrastructure (no mod content changes)
+2. **Smart Version Detection**
+   - Analyzes changed files since last release tag
+   - Determines appropriate version bump type:
+     - **PATCH**: Configuration changes (`config/`, `scripts/`, `shaderpacks/`)
+     - **MINOR**: Mod count changes (detected in `modrinth.index.json`)
+     - **MAJOR**: Breaking changes (manual specification)
 
-**Trigger Paths:**
-- `config/**` - Configuration changes
-- `mods/**` - Mod additions/removals (triggers GitHub Actions)
-- `scripts/**` - CraftTweaker script changes
-- `shaderpacks/**` - Shader pack changes
-- `modrinth.index.json` - Manifest updates
-- `mod_overrides.conf` - URL override changes
+3. **Version Update & Artifact Preparation**
+   - Updates `modrinth.index.json` with new version
+   - Renames `.mrpack` file to match new version
+   - Prepares artifacts for distribution
 
-**Note**: The `mods/` directory is excluded from Git tracking but monitored by the build system for changes.
+4. **Release Creation & Distribution**
+   - Creates GitHub release with version-appropriate changelog
+   - Uploads `.mrpack` to GitHub release assets
+   - Distributes to Modrinth platform
+   - Commits version updates back to repository
+
+**Trigger Conditions:**
+```yaml
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'config/**'          # Mod configurations (PATCH)
+      - 'scripts/**'         # CraftTweaker scripts (PATCH)
+      - 'shaderpacks/**'     # Shader packs (PATCH)
+      - 'modrinth.index.json' # Mod manifest (MINOR for mod changes)
+      - 'mod_overrides.conf' # URL overrides (PATCH)
+      - 'options.txt'        # Client settings (PATCH)
+      - 'servers.dat'        # Server list (PATCH)
+  workflow_dispatch:        # Manual trigger
+```
+
+**Key Benefits:**
+- ✅ **Eliminates dependency download issues** (uranus, jupiter, etc.)
+- ✅ **Much faster CI execution** (2 minutes vs 5-10 minutes)
+- ✅ **Local builds are authoritative** - what you test locally is what gets released
+- ✅ **No mod download failures** in CI environment
+- ✅ **Simplified workflow** - focus on validation rather than recreation
+
+**Developer Workflow:**
+1. **Build Locally**: Run `./build.sh` to generate `.mrpack` and update manifest
+2. **Test Locally**: Verify modpack works with all dependencies
+3. **Commit & Push**: Include both `.mrpack` file and `modrinth.index.json` 
+4. **Automatic Release**: CI validates, versions, and distributes
+
+#### Legacy Build-in-CI Approach (Deprecated)
+Previously, the CI would download mods from the manifest and rebuild the modpack, but this caused issues with:
+- Missing dependencies not in the manifest (uranus, jupiter for Ice and Fire CE)
+- Unreliable mod downloads from external sources
+- Complex dependency resolution in CI environment
+- Longer build times and potential network failures
 
 #### Development Pipeline ([.github/workflows/develop.yml](../.github/workflows/develop.yml))
 Triggered on develop branch changes:
@@ -260,54 +299,109 @@ Triggered on develop branch changes:
 
 ## Build System
 
-### Build Process Flow
+### New Streamlined Architecture (v3.12.5+)
 
-The build system operates in two distinct modes depending on the environment:
+The build system has been redesigned for maximum efficiency and reliability:
 
-#### Local Development Mode
-1. **Initialization**
-   - Environment setup and dependency checking
-   - Cache directory creation
-   - Statistics initialization
+#### **Local Development (Primary Build Environment)**
+**Purpose**: Authoritative modpack builds with full dependency access
 
-2. **Mod Discovery**
-   - Scan existing mods directory for .jar files
-   - Extract mod metadata from filenames
-   - Generate potential mod slugs for API queries
+1. **Environment Setup**
+   - Full mod collection available in `mods/` directory
+   - All dependencies including uranus, jupiter for Ice and Fire CE
+   - Complete configuration and resource files
 
-3. **URL Resolution**
-   - Query Modrinth API for official download URLs
-   - Fallback to CurseForge API if needed
-   - Apply manual overrides for problematic mods
-   - Validate download URLs and file integrity
+2. **Build Process** (`./build.sh`)
+   - Scan existing mod JARs for metadata extraction
+   - Query Modrinth/CurseForge APIs for official download URLs
+   - Apply manual overrides from `mod_overrides.conf`
+   - Detect environment compatibility (client/server/both)
+   - Generate `modrinth.index.json` manifest with external URLs
+   - Create `.mrpack` file with configurations only (no mod JARs)
 
-4. **Environment Detection**
-   - Determine client/server compatibility
-   - Apply manual environment overrides
-   - Classify mods by environment requirements
+3. **Quality Assurance**
+   - Test generated `.mrpack` in local launcher
+   - Verify all dependencies are properly included
+   - Validate server compatibility if needed
 
-5. **Manifest Generation**
-   - Create modrinth.index.json with external URLs
-   - Include file integrity hashes
-   - Set environment specifications
-   - Add metadata and version information
+4. **Commit Artifacts**
+   - Commit updated `modrinth.index.json` manifest
+   - Commit generated `.mrpack` file (now tracked in Git)
+   - Commit any configuration changes
 
-#### CI/Automation Mode
-1. **Manifest-Based Mod Acquisition**
-   - Download mod JARs from existing manifest URLs
-   - Create temporary mods directory
-   - Verify download success for build process
+#### **CI/CD Pipeline (Validation & Distribution)**
+**Purpose**: Validate existing artifacts and handle automated distribution
 
-2. **Standard Build Process**
-   - Execute same mod discovery and analysis as local mode
-   - Generate updated manifest with new version
-   - Create .mrpack with current configurations
+1. **Artifact Validation**
+   - Verify `.mrpack` file exists in repository
+   - Confirm `modrinth.index.json` manifest is present
+   - Extract current version information
 
-3. **Cleanup**
-   - Remove temporarily downloaded mod files
-   - Preserve only the generated artifacts
+2. **Smart Version Management**
+   - Analyze changed files since last release
+   - Auto-determine version bump type (PATCH/MINOR/MAJOR)
+   - Update manifest version and rename `.mrpack` accordingly
 
-### Package Creation (Both Modes)
+3. **Distribution**
+   - Create GitHub release with updated artifacts
+   - Upload to Modrinth platform
+   - Commit version updates back to repository
+
+#### **Key Architectural Benefits**
+
+✅ **Eliminates Dependency Issues**: No more missing uranus/jupiter problems  
+✅ **Faster CI**: 2-minute validation vs 5-10 minute rebuilds  
+✅ **Local Authority**: What you build locally is exactly what gets released  
+✅ **Network Reliability**: No mod downloads in CI that can fail  
+✅ **Developer Experience**: Build and test locally with full mod access  
+
+### Git Tracking Changes
+
+#### **Now Tracked in Git:**
+- `.mrpack` files (small, contains only configs/scripts/resources)
+- `modrinth.index.json` manifest
+- Configuration files, scripts, shaderpacks
+
+#### **Still Excluded from Git:**
+- `mods/` directory with JAR files (too large, licensing)
+- Cache and temporary files
+- Build artifacts except final `.mrpack`
+
+### Developer Workflow
+
+```bash
+# 1. Local Development
+./build.sh                    # Build locally with full mod access
+# Test the generated .mrpack in your launcher
+
+# 2. Commit Changes  
+git add modrinth.index.json *.mrpack config/ scripts/
+git commit -m "Add new mod: Example Mod v1.2.3"
+
+# 3. Push and Automate
+git push origin main          # Triggers CI validation and release
+```
+
+### Backward Compatibility
+
+The build script still supports both modes:
+- **Local Mode**: Full featured building with mod JARs present
+- **CI Mode**: Can download mods from manifest if needed (legacy fallback)
+
+The CI workflow prioritizes validation over rebuilding, but maintains capability for full builds if required.
+
+### Legacy CI Build Mode (Deprecated)
+
+Previously the CI would:
+1. Download all mods from manifest URLs  
+2. Rebuild the entire modpack from scratch
+3. Generate new manifest and `.mrpack`
+
+**Issues with Legacy Approach:**
+- Missing dependencies not in manifest (uranus, jupiter)
+- Network reliability issues with mod downloads
+- Longer build times and complex dependency resolution
+- CI environment differences from local development
    - Generate .mrpack file with overrides only
    - Exclude mod files (100% external downloads)
    - Include configuration and resource files
