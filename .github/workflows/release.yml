@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'config/**'
-      - 'minecraft/mods/**'
+      - 'mods/**'
       - 'minecraft/config/**'
       - 'minecraft/scripts/**'
       - 'minecraft/shaderpacks/**'

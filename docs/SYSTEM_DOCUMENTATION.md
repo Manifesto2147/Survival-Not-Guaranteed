@@ -309,12 +309,9 @@ Survival Not Guaranteed/
 ├── docs/                    # Documentation
 │   └── SYSTEM_DOCUMENTATION.md
 ├── config/                  # PrismLauncher instance config
-├── minecraft/
-│   ├── mods/               # Mod JAR files
-│   ├── config/             # Mod configurations
-│   ├── scripts/            # CraftTweaker scripts
-│   ├── shaderpacks/        # Shader files
-│   └── servers.dat         # Server list
+├── mods/                    # Mod JAR files (excluded from Git)
+├── scripts/                 # CraftTweaker scripts
+├── shaderpacks/             # Shader files
 ├── tools/
 │   └── core/
 │       ├── [update-mods.sh](../tools/update-mods.sh)  # Advanced update system
@@ -334,7 +331,9 @@ Survival Not Guaranteed/
 **/.github/workflows/**: Automation and CI/CD pipeline definitions
 **/docs/**: Comprehensive system documentation
 **/config/**: PrismLauncher-specific configuration files
-**/minecraft/**: Standard Minecraft directory structure for PrismLauncher
+**/mods/**: Mod JAR files (excluded from Git, populated by build system)
+**/scripts/**: CraftTweaker scripts
+**/shaderpacks/**: Shader files
 **/tools/**: Advanced management utilities
 **Root Level**: Primary scripts and configuration files
 
@@ -356,7 +355,7 @@ Mods are classified into three categories:
 ### Configuration Files
 - **[modrinth.index.json](../modrinth.index.json)**: Primary modpack manifest
 - **[mod_overrides.conf](../mod_overrides.conf)**: URL override configuration
-- **[minecraft/config/](../minecraft/config/)**: Individual mod configurations
+- **[config/](../config/)**: Individual mod configurations
 - **[scripts/](../scripts/)**: CraftTweaker script configurations
 
 ## Troubleshooting and Maintenance

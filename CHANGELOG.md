@@ -1,12 +1,21 @@
-Survival Not Guaranteed v3.11.0
+Survival Not Guaranteed v3.13.0
 
 Release Date: July 06, 2025
-Previous Version: 3.11.0
+Previous Version: 3.12.0
 
-OTHER CHANGES
+MOD CHANGES
 
-- Updated modpack components
-- General improvements and optimizations
+Removed Mods:
+- athena-neoforge (athena-neoforge-1.21-4.0.2.jar)
+- dungeons-and-taverns-ancient-city-overhaul-v2 (dungeons-and-taverns-ancient-city-overhaul-v2.jar)
+- dungeons-and-taverns-desert-temple-replacement-v1.2 (dungeons-and-taverns-desert-temple-replacement-v1.2.jar)
+- dungeons-and-taverns-end-castle-standalone-v1.1 (dungeons-and-taverns-end-castle-standalone-v1.1.jar)
+- dungeons-and-taverns-jungle-temple-replacement-v1.2 (dungeons-and-taverns-jungle-temple-replacement-v1.2.jar)
+- dungeons-and-taverns-nether-fortress-overhaul-v2.4 (dungeons-and-taverns-nether-fortress-overhaul-v2.4.jar)
+- dungeons-and-taverns-ocean-monument-replacement-v1.2 (dungeons-and-taverns-ocean-monument-replacement-v1.2.jar)
+- dungeons-and-taverns-stronghold-overhaul-v2.1.f (dungeons-and-taverns-stronghold-overhaul-v2.1.f.jar)
+- dungeons-and-taverns-v4.4.4 (dungeons-and-taverns-v4.4.4.jar)
+- dungeons-and-taverns-woodland-mansion-replacement-v1.2 (dungeons-and-taverns-woodland-mansion-replacement-v1.2.jar)
 
 TECHNICAL DETAILS
 

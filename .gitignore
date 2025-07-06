@@ -24,8 +24,8 @@ command_history.txt
 class/
 patchouli_data.json
 
-# Ignore mod jars if using a manifest (currently DISABLED for compatibility)
-# mods/
+# Ignore mod jars if using a manifest (100% external downloads)
+mods/
 
 # PrismLauncher-specific files (keeping minecraft/ as it contains the actual mods)
 instance.cfg
