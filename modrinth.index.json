@@ -1,9 +1,9 @@
 {
   "formatVersion": 1,
   "game": "minecraft",
-  "versionId": "3.12.6",
+  "versionId": "3.12.5",
   "name": "Survival Not Guaranteed",
-  "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
+  "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders and expanded dungeons",
   "files": [
     {
       "path": "mods/[1.21-neoforge]-Epic-Knights-9.23.jar",
