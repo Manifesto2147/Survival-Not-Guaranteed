@@ -1108,6 +1108,9 @@ EOF
 }
 
 generate_manifest() {
+  # Debug CI mode detection
+  echo "- DEBUG: CI_MODE='$CI_MODE', manifest exists: $([ -f "modrinth.index.json" ] && echo "yes" || echo "no")"
+  
   # In CI mode, use existing manifest instead of scanning mods
   if [ "$CI_MODE" = "true" ] && [ -f "modrinth.index.json" ]; then
     echo "- CI mode: Using existing manifest (skipping mod scanning)..."
