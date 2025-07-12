@@ -54,23 +54,47 @@ jobs:
         # Set environment variables for build script
         export GITHUB_REPO="${{ github.repository }}"
         export MODRINTH_PROJECT="${{ vars.MODRINTH_PROJECT_ID }}"
-        export STRICT_EXTERNAL_DOWNLOADS="true"
+        export STRICT_EXTERNAL_DOWNLOADS="false"  # Use pre-downloaded mods
         
-        # Create mods directory if it doesn't exist
+        # Create mods directory and download ALL mods from manifest
         mkdir -p mods
         
-        # Download mods based on existing manifest (if it exists) for faster build
+        # Download ALL mods from manifest with verification
         if [ -f "modrinth.index.json" ]; then
-          echo "- Pre-downloading mods from existing manifest for faster build..."
-          while IFS= read -r url; do
-            if [ -n "$url" ] && [ "$url" != "null" ]; then
-              filename=$(basename "$url")
-              if [ ! -f "mods/$filename" ]; then
-                echo "  Downloading: $filename"
-                curl -L -o "mods/$filename" "$url" 2>/dev/null || echo "    Failed to download $filename"
-              fi
+          echo "- Downloading ALL mods from manifest for CI build..."
+          
+          # Get total mod count for progress tracking
+          TOTAL_MODS=$(jq '.files | length' modrinth.index.json)
+          echo "+ Total mods to download: $TOTAL_MODS"
+          
+          # Create download script
+          jq -r '.files[] | "\(.downloads[0]) \(.path)"' modrinth.index.json > /tmp/download_list.txt
+          
+          DOWNLOADED=0
+          FAILED=0
+          
+          while read -r url path; do
+            filename=$(basename "$path")
+            DOWNLOADED=$((DOWNLOADED + 1))
+            echo "  [$DOWNLOADED/$TOTAL_MODS] Downloading: $filename"
+            
+            if curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
+              echo "    ✓ Downloaded successfully"
+            else
+              echo "    ✗ FAILED to download from $url"
+              FAILED=$((FAILED + 1))
             fi
-          done < <(jq -r '.files[]?.downloads[]?' modrinth.index.json 2>/dev/null | head -200)
+          done < /tmp/download_list.txt
+          
+          echo "+ Downloaded: $((DOWNLOADED - FAILED)) mods successfully"
+          if [ $FAILED -gt 0 ]; then
+            echo "+ Failed: $FAILED mods"
+            echo "  Continuing with available mods..."
+          fi
+          
+          # List downloaded mods for verification
+          ACTUAL_COUNT=$(ls -1 mods/*.jar 2>/dev/null | wc -l)
+          echo "+ Actual mod files in mods/: $ACTUAL_COUNT"
         fi
         
         # Make build script executable
@@ -149,6 +173,43 @@ jobs:
           exit 1
         fi
         echo "+ Successfully generated: modrinth.index.json"
+        
+        # Validate that .mrpack contains all expected mods
+        echo "- Validating .mrpack contents..."
+        
+        # Extract and check internal manifest
+        unzip -p "$MRPACK_FILE" modrinth.index.json > /tmp/internal_manifest.json 2>/dev/null || {
+          echo "ERROR: Could not extract internal manifest from .mrpack!"
+          exit 1
+        }
+        
+        # Compare mod counts
+        EXTERNAL_MOD_COUNT=$(jq '.files | length' modrinth.index.json)
+        INTERNAL_MOD_COUNT=$(jq '.files | length' /tmp/internal_manifest.json)
+        
+        echo "+ External manifest: $EXTERNAL_MOD_COUNT mods"
+        echo "+ Internal manifest: $INTERNAL_MOD_COUNT mods"
+        
+        if [ "$EXTERNAL_MOD_COUNT" != "$INTERNAL_MOD_COUNT" ]; then
+          echo "ERROR: Mod count mismatch! External: $EXTERNAL_MOD_COUNT, Internal: $INTERNAL_MOD_COUNT"
+          echo "Missing mods analysis:"
+          echo "External mods not in internal:"
+          comm -23 <(jq -r '.files[].path' modrinth.index.json | sort) <(jq -r '.files[].path' /tmp/internal_manifest.json | sort)
+          exit 1
+        fi
+        
+        # Check for critical mods (Dungeons & Taverns)
+        DT_MODS_EXTERNAL=$(jq '.files[] | select(.path | contains("dungeons")) | .path' modrinth.index.json | wc -l)
+        DT_MODS_INTERNAL=$(jq '.files[] | select(.path | contains("dungeons")) | .path' /tmp/internal_manifest.json | wc -l)
+        
+        echo "+ Dungeons & Taverns mods - External: $DT_MODS_EXTERNAL, Internal: $DT_MODS_INTERNAL"
+        
+        if [ "$DT_MODS_EXTERNAL" != "$DT_MODS_INTERNAL" ]; then
+          echo "ERROR: Dungeons & Taverns mod count mismatch!"
+          exit 1
+        fi
+        
+        echo "+ ✓ All validation checks passed!"
         
         # Get version from generated manifest
         NEW_VERSION=$(jq -r '.versionId' modrinth.index.json)
