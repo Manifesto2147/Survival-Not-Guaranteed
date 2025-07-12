@@ -1108,7 +1108,27 @@ EOF
 }
 
 generate_manifest() {
-  echo "- Generating manifest..."
+  # In CI mode, use existing manifest instead of scanning mods
+  if [ "$CI_MODE" = "true" ] && [ -f "modrinth.index.json" ]; then
+    echo "- CI mode: Using existing manifest (skipping mod scanning)..."
+    
+    # Update version in existing manifest if needed
+    if [ "$(jq -r '.versionId' modrinth.index.json)" != "$CURRENT_VERSION" ]; then
+      echo "+ Updating manifest version: $(jq -r '.versionId' modrinth.index.json) → $CURRENT_VERSION"
+      jq --arg version "$CURRENT_VERSION" '.versionId = $version' modrinth.index.json > temp_manifest.json
+      mv temp_manifest.json modrinth.index.json
+    fi
+    
+    # Set statistics from existing manifest
+    local manifest_mod_count=$(jq '.files | length' modrinth.index.json)
+    echo "+ Using existing manifest with: $manifest_mod_count mods"
+    
+    TOTAL_MODS=$manifest_mod_count
+    MODRINTH_FOUND=$manifest_mod_count
+    return 0
+  fi
+  
+  echo "- Generating manifest from mod scan..."
   
   local mod_entries=""
   local file_count=0
@@ -1387,12 +1407,12 @@ create_mrpack() {
     echo "  + launcher_profiles.json → overrides/launcher_profiles.json (Minecraft Launcher: 4GB auto-allocation)"
   fi
   
-  # Include mods that couldn't be resolved OR all mods in CI mode
-  if [ $PACK_INCLUDED -gt 0 ] || [ "$STRICT_EXTERNAL_DOWNLOADS" = "false" ]; then
+  # Include mods that couldn't be resolved (but NOT in CI mode - CI uses pure external downloads)
+  if [ $PACK_INCLUDED -gt 0 ] && [ "$STRICT_EXTERNAL_DOWNLOADS" != "false" ]; then
     mkdir -p "$temp_dir/mods"
     local effective_mods_dir="$MODS_DIR"
     
-    echo "  + Including mods in pack (CI mode: STRICT_EXTERNAL_DOWNLOADS=$STRICT_EXTERNAL_DOWNLOADS)"
+    echo "  + Including unresolved mods in pack"
     
     for mod_file in "$effective_mods_dir"/*.jar; do
       if [ ! -f "$mod_file" ]; then
@@ -1401,20 +1421,14 @@ create_mrpack() {
       
       local filename=$(basename "$mod_file")
       
-      # In CI mode (STRICT_EXTERNAL_DOWNLOADS=false), include ALL downloaded mods
-      if [ "$STRICT_EXTERNAL_DOWNLOADS" = "false" ]; then
+      # Check if this mod needs to be included
+      local lookup_result=$(smart_mod_lookup "$mod_file")
+      local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
+      local source=$(echo "$lookup_result" | cut -d'|' -f2)
+      
+      if [ "$result_type" = "INCLUDE" ] || [ "$source" = "dependency-safety" ]; then
         cp "$mod_file" "$temp_dir/mods/"
-        echo "  - Including (CI mode): $filename"
-      else
-        # Regular mode: only include unresolved mods
-        local lookup_result=$(smart_mod_lookup "$mod_file")
-        local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
-        local source=$(echo "$lookup_result" | cut -d'|' -f2)
-        
-        if [ "$result_type" = "INCLUDE" ] || [ "$source" = "dependency-safety" ]; then
-          cp "$mod_file" "$temp_dir/mods/"
-          echo "  - Including: $filename"
-        fi
+        echo "  - Including: $filename"
       fi
     done
   fi

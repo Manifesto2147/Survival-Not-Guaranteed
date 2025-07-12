@@ -54,7 +54,8 @@ jobs:
         # Set environment variables for build script
         export GITHUB_REPO="${{ github.repository }}"
         export MODRINTH_PROJECT="${{ vars.MODRINTH_PROJECT_ID }}"
-        export STRICT_EXTERNAL_DOWNLOADS="false"  # Use pre-downloaded mods
+        export STRICT_EXTERNAL_DOWNLOADS="true"
+        export CI_MODE="true"  # Skip mod verification, use existing manifest
         
         # Create mods directory and download ALL mods from manifest
         mkdir -p mods
