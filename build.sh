@@ -1387,10 +1387,12 @@ create_mrpack() {
     echo "  + launcher_profiles.json → overrides/launcher_profiles.json (Minecraft Launcher: 4GB auto-allocation)"
   fi
   
-  # Include mods that couldn't be resolved
-  if [ $PACK_INCLUDED -gt 0 ]; then
+  # Include mods that couldn't be resolved OR all mods in CI mode
+  if [ $PACK_INCLUDED -gt 0 ] || [ "$STRICT_EXTERNAL_DOWNLOADS" = "false" ]; then
     mkdir -p "$temp_dir/mods"
     local effective_mods_dir="$MODS_DIR"
+    
+    echo "  + Including mods in pack (CI mode: STRICT_EXTERNAL_DOWNLOADS=$STRICT_EXTERNAL_DOWNLOADS)"
     
     for mod_file in "$effective_mods_dir"/*.jar; do
       if [ ! -f "$mod_file" ]; then
@@ -1399,14 +1401,20 @@ create_mrpack() {
       
       local filename=$(basename "$mod_file")
       
-      # Check if this mod needs to be included
-      local lookup_result=$(smart_mod_lookup "$mod_file")
-      local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
-      local source=$(echo "$lookup_result" | cut -d'|' -f2)
-      
-      if [ "$result_type" = "INCLUDE" ] || [ "$source" = "dependency-safety" ]; then
+      # In CI mode (STRICT_EXTERNAL_DOWNLOADS=false), include ALL downloaded mods
+      if [ "$STRICT_EXTERNAL_DOWNLOADS" = "false" ]; then
         cp "$mod_file" "$temp_dir/mods/"
-        echo "  - Including: $filename"
+        echo "  - Including (CI mode): $filename"
+      else
+        # Regular mode: only include unresolved mods
+        local lookup_result=$(smart_mod_lookup "$mod_file")
+        local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
+        local source=$(echo "$lookup_result" | cut -d'|' -f2)
+        
+        if [ "$result_type" = "INCLUDE" ] || [ "$source" = "dependency-safety" ]; then
+          cp "$mod_file" "$temp_dir/mods/"
+          echo "  - Including: $filename"
+        fi
       fi
     done
   fi
