@@ -144,17 +144,51 @@ jobs:
           echo "+ Detected configuration changes (patch bump)"
         fi
         
-        # Generate new version
+        # Generate new version with existence checking
         BASE_VERSION=$(echo "$CURRENT_VERSION" | sed 's/^v//')
         IFS='.' read -r major minor patch <<< "$BASE_VERSION"
         
+        # Calculate initial new version
         case "$BUMP_TYPE" in
           "major") NEW_VERSION="$((major + 1)).0.0" ;;
           "minor") NEW_VERSION="$major.$((minor + 1)).0" ;;
           "patch") NEW_VERSION="$major.$minor.$((patch + 1))" ;;
         esac
         
-        echo "+ Version bump: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
+        echo "+ Initial version calculation: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
+        
+        # Check if version already exists and increment until we find an unused one
+        check_version_exists() {
+          local version="$1"
+          
+          # Check GitHub releases
+          if gh release view "v$version" >/dev/null 2>&1; then
+            return 0  # exists
+          fi
+          
+          # Check Modrinth if we have project ID
+          if [ -n "${{ vars.MODRINTH_PROJECT_ID }}" ]; then
+            local modrinth_response=$(curl -s "https://api.modrinth.com/v2/project/${{ vars.MODRINTH_PROJECT_ID }}/version" 2>/dev/null || echo "[]")
+            if echo "$modrinth_response" | jq -e ".[] | select(.version_number == \"$version\")" >/dev/null 2>&1; then
+              return 0  # exists
+            fi
+          fi
+          
+          return 1  # doesn't exist
+        }
+        
+        # Find next available version
+        FINAL_VERSION="$NEW_VERSION"
+        while check_version_exists "$FINAL_VERSION"; do
+          echo "+ Version $FINAL_VERSION already exists, incrementing..."
+          
+          # Parse current version and increment patch
+          IFS='.' read -r v_major v_minor v_patch <<< "$FINAL_VERSION"
+          FINAL_VERSION="$v_major.$v_minor.$((v_patch + 1))"
+        done
+        
+        NEW_VERSION="$FINAL_VERSION"
+        echo "+ Final version: $NEW_VERSION (verified as unused)"
         
         # Run build script with version override
         ./build.sh --version "$NEW_VERSION"
