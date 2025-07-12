@@ -506,6 +506,13 @@ get_manual_environment_override() {
         return
     fi
     
+    # Dungeons & Taverns mods - all support both client and server
+    # (client: optional, server: required in Modrinth terms = "both" in our system)
+    if [[ "$mod_name" == *"dungeons-and-taverns"* ]] || [[ "$mod_name" == *"dungeons_and_taverns"* ]]; then
+        echo "both"
+        return
+    fi
+    
     echo ""
 }
 
