@@ -1108,9 +1108,6 @@ EOF
 }
 
 generate_manifest() {
-  # Debug CI mode detection
-  echo "- DEBUG: CI_MODE='$CI_MODE', manifest exists: $([ -f "modrinth.index.json" ] && echo "yes" || echo "no")"
-  
   # In CI mode, use existing manifest instead of scanning mods
   if [ "$CI_MODE" = "true" ] && [ -f "modrinth.index.json" ]; then
     echo "- CI mode: Using existing manifest (skipping mod scanning)..."
@@ -1707,9 +1704,22 @@ main() {
   
   # Clean up old files to ensure fresh build
   echo "- Cleaning up old build artifacts..."
+  
+  # In CI mode, preserve the existing manifest
+  if [ "$CI_MODE" = "true" ] && [ -f "modrinth.index.json" ]; then
+    echo "- CI mode: Preserving existing manifest..."
+    cp modrinth.index.json modrinth.index.json.backup
+  fi
+  
   rm -f modrinth.index.json 2>/dev/null || true
   rm -f *.mrpack 2>/dev/null || true
   rm -f CHANGELOG.md 2>/dev/null || true
+  
+  # Restore manifest in CI mode
+  if [ "$CI_MODE" = "true" ] && [ -f "modrinth.index.json.backup" ]; then
+    echo "- CI mode: Restoring preserved manifest..."
+    mv modrinth.index.json.backup modrinth.index.json
+  fi
   
   # Detect version
   get_latest_version
