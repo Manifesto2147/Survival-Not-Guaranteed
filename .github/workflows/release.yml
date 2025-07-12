@@ -57,46 +57,11 @@ jobs:
         export STRICT_EXTERNAL_DOWNLOADS="true"
         export CI_MODE="true"  # Skip mod verification, use existing manifest
         
-        # Create mods directory and download ALL mods from manifest
+        # Create empty mods directory for build script validation
         mkdir -p mods
         
-        # Download ALL mods from manifest with verification
-        if [ -f "modrinth.index.json" ]; then
-          echo "- Downloading ALL mods from manifest for CI build..."
-          
-          # Get total mod count for progress tracking
-          TOTAL_MODS=$(jq '.files | length' modrinth.index.json)
-          echo "+ Total mods to download: $TOTAL_MODS"
-          
-          # Create download script
-          jq -r '.files[] | "\(.downloads[0]) \(.path)"' modrinth.index.json > /tmp/download_list.txt
-          
-          DOWNLOADED=0
-          FAILED=0
-          
-          while read -r url path; do
-            filename=$(basename "$path")
-            DOWNLOADED=$((DOWNLOADED + 1))
-            echo "  [$DOWNLOADED/$TOTAL_MODS] Downloading: $filename"
-            
-            if curl -L -f -o "mods/$filename" "$url" 2>/dev/null; then
-              echo "    ✓ Downloaded successfully"
-            else
-              echo "    ✗ FAILED to download from $url"
-              FAILED=$((FAILED + 1))
-            fi
-          done < /tmp/download_list.txt
-          
-          echo "+ Downloaded: $((DOWNLOADED - FAILED)) mods successfully"
-          if [ $FAILED -gt 0 ]; then
-            echo "+ Failed: $FAILED mods"
-            echo "  Continuing with available mods..."
-          fi
-          
-          # List downloaded mods for verification
-          ACTUAL_COUNT=$(ls -1 mods/*.jar 2>/dev/null | wc -l)
-          echo "+ Actual mod files in mods/: $ACTUAL_COUNT"
-        fi
+        # Note: In CI mode, we use existing modrinth.index.json as-is
+        # No need to download mods since we're using pure external downloads
         
         # Make build script executable
         chmod +x build.sh
