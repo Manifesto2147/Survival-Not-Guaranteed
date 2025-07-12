@@ -13,25 +13,38 @@ For comprehensive technical documentation, build processes, and development guid
 
 ---
 
-## 🛠️ Automated Mod Management System
+## 🛠️ Manifest-Driven Development System
 
-This modpack includes a comprehensive automated mod management system with the following features:
+This modpack employs a cutting-edge manifest-driven CI/CD system for reliable, automated distribution:
 
-- **🔄 Automated Updates**: Fully automated mod updates with dependency resolution
-- **🛡️ Safe Operations**: Backup and rollback capabilities for all operations
-- **🧠 Constraint Resolution**: Intelligent dependency constraint solving
-- **📊 Dependency Validation**: Comprehensive dependency checking
-- **🎯 Zero Intervention**: Completely automated workflow requiring no manual steps
+- **📋 Manifest Authority**: `modrinth.index.json` is the single source of truth for all mod information
+- **🔄 Fresh CI Builds**: Every release downloads all 140+ mods fresh and rebuilds the .mrpack from scratch
+- **✅ Zero Drift**: Eliminates version mismatches between development and distribution
+- **🛡️ Legal Compliance**: All mods downloaded from official Modrinth sources only
+- **🎯 Dungeons & Taverns**: Server-only mods properly handled and distributed
+- **⚡ Instant Updates**: Push manifest changes, get automatic releases with complete mod validation
 
-### Quick Management Commands
+### Developer Workflow (Manifest-First)
 
 ```bash
-./update-mods.sh --auto        # Fully automated updates
-./validate-dependencies.sh     # Validate all dependencies
-./manage-mods.sh              # High-level management
+# Update the manifest with new/changed mods
+vim modrinth.index.json
+
+# Test the manifest builds correctly
+./build.sh
+
+# Commit and push changes (no .mrpack files needed)
+git add modrinth.index.json CHANGELOG.md
+git commit -m "Add new mods and update manifest"
+git push origin main  # Triggers automated CI/CD
+
+# CI automatically:
+# 1. Downloads all 140+ mods from manifest
+# 2. Builds fresh .mrpack with exact version sync
+# 3. Distributes to GitHub and Modrinth
 ```
 
-**For detailed management documentation, see [MOD_MANAGEMENT.md](MOD_MANAGEMENT.md)**
+**For comprehensive technical documentation, see [Complete System Documentation](docs/SYSTEM_DOCUMENTATION.md)**
 
 ---
 
@@ -119,27 +132,31 @@ The modpack automatically includes our community server in your multiplayer list
 - Consult Patchouli books for detailed mod information
 - Join discussions in [GitHub Issues](https://github.com/Manifesto2147/Survival-Not-Guaranteed/issues)
 
-### Featured Mods (142 Total)
+### Featured Mods (140+ Total)
 - **Magic**: Ars Nouveau, Iron's Spells & Spellbooks, Relics
 - **Technology**: Create, Sophisticated Storage, Advanced Automation
-- **Exploration**: When Dungeons Arise, Terralith, Ice & Fire
+- **Exploration**: When Dungeons Arise, Terralith, Ice & Fire, Dungeons & Taverns
 - **Survival**: Cold Sweat, Thirst Was Taken, Serene Seasons
 - **Combat**: Better Combat, Epic Knights, Expanded Combat
 - **Quality of Life**: JEI, Xaero's Map, Waystones
 
 ## Technical Details
 
-### Version Information
-- **Current Version**: Auto-updated via GitHub Actions
+### Version Information & Architecture
+- **Current Version**: Automatically managed via manifest-driven CI/CD
 - **Minecraft**: 1.21.1
 - **Modloader**: NeoForge 21.1.180
-- **Mod Count**: 142 carefully curated mods
-- **Download Size**: ~750KB (.mrpack file with external downloads)
+- **Mod Count**: 140+ carefully curated mods (including server-only mods)
+- **Distribution**: Manifest-driven .mrpack with fresh mod downloads
+- **Build System**: Zero-artifact repository with CI rebuilding
+- **Legal Compliance**: Official Modrinth sources only
 
-### Compatibility
-- **Client & Server**: Full multiplayer support
+### Compatibility & Distribution
+- **Client & Server**: Full multiplayer support with proper environment detection
 - **Cross-Platform**: Works on Windows, macOS, and Linux
-- **Launcher Support**: Universal .mrpack format
+- **Launcher Support**: Universal .mrpack format (Modrinth App, PrismLauncher, MultiMC)
+- **Download Size**: ~2MB (.mrpack with external mod downloads)
+- **Installation**: Automatic mod acquisition from verified sources
 
 ---
 
