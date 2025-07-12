@@ -16,11 +16,11 @@
 
 ## System Overview
 
-Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featuring 131 carefully curated mods. The project employs a sophisticated automated management system designed for zero-intervention operations, comprehensive dependency management, and reliable deployment.
+Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featuring 140 carefully curated mods. The project employs a sophisticated automated management system designed for zero-intervention operations, comprehensive dependency management, and reliable deployment.
 
 ### Key Characteristics
 - **Target Audience**: Players seeking challenging survival gameplay with fantasy RPG elements
-- **Mod Count**: 131 mods (121 universal, 10 client-only)
+- **Mod Count**: 140 mods (including 9 Dungeons & Taverns universal mods)
 - **Distribution**: .mrpack format with 100% external downloads
 - **Architecture**: Multi-platform with automated CI/CD pipeline
 - **Management**: Fully automated mod updates and dependency resolution
@@ -32,9 +32,10 @@ Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featurin
 - **Memory Management**: Implemented standards-compliant 4GB RAM allocation
 - **Profile Support**: Added support for Modrinth App, PrismLauncher, and MultiMC profiles
 - **JVM Optimization**: Integrated Aikar's flags for improved performance
+- **Dungeons & Taverns Fix**: Fixed environment detection to properly support client installations
 
 ### Recent Infrastructure Improvements (v3.12.0+)
-- **Git Optimization**: Removed mod files from repository tracking (131 files excluded)
+- **Git Optimization**: Removed mod files from repository tracking (140 files excluded)
 - **CI/CD Enhancement**: Implemented manifest-based CI builds with temporary mod download
 - **Build System**: Dual-mode operation for local development and CI automation
 - **Workflow Optimization**: Automated mod acquisition from manifest URLs in CI
@@ -204,7 +205,7 @@ Advanced automatic update system with:
    - Verifies .mrpack file was created successfully
    - Extracts and validates internal manifest structure
    - **Mod count verification**: Ensures all 140+ mods preserved in manifest
-   - **Critical mod check**: Specifically validates Dungeons & Taverns server-only mods
+   - **Critical mod check**: Specifically validates Dungeons & Taverns universal mods
    - **Download URL validation**: Confirms all manifest entries have valid download URLs
    - **Environment verification**: Validates client/server environment settings
 
@@ -238,7 +239,7 @@ on:
 - ✅ **Massive size reduction** - .mrpack files ~2MB vs 2GB+ (99%+ reduction)
 - ✅ **Lightning fast CI** - No mod downloading needed, pure manifest operations
 - ✅ **Legal compliance perfection** - Only official Modrinth sources, no cached files
-- ✅ **Server-only mod support** - Dungeons & Taverns properly distributed
+- ✅ **Universal mod support** - Dungeons & Taverns properly distributed to both client and server
 - ✅ **Universal launcher support** - Works identically across all platforms
 - ✅ **Bandwidth efficiency** - Users download only needed mods for their platform
 - ✅ **Update resilience** - Mod updates automatically available without pack rebuilds
@@ -378,7 +379,7 @@ The build system has achieved the ultimate manifestation of pure external downlo
 3. **Quality Assurance & Testing**
    - Test generated `.mrpack` in local launcher (Modrinth App, PrismLauncher)
    - Verify all mods download correctly from manifest URLs
-   - Validate server compatibility for server-only mods (Dungeons & Taverns)
+   - Validate server compatibility for universal mods (Dungeons & Taverns)
    - Confirm environment settings are correctly applied
 
 4. **Repository Workflow**
@@ -398,7 +399,7 @@ The build system has achieved the ultimate manifestation of pure external downlo
 2. **Complete Mod Acquisition**
    - Download ALL 140+ mods from manifest URLs using Modrinth API
    - Verify each mod file hash and size against manifest specifications
-   - Handle Dungeons & Taverns and other server-only mods correctly
+   - Handle Dungeons & Taverns and other universal mods correctly
    - Create complete temporary `mods/` directory with all required files
    - Perform integrity checks and retry failed downloads
 
@@ -638,6 +639,17 @@ Mods are classified into three categories:
 
 ### Common Issues and Solutions
 
+#### Missing Mods in Launcher (D&T Environment Fix)
+**Symptom**: Dungeons & Taverns mods not appearing in client installations despite being in manifest
+**Root Cause**: Mods were incorrectly marked as `client: "unsupported"` instead of `client: "required"`
+**Solution**: Fixed in v3.12.11+ with manual environment overrides for all D&T mods
+**Verification**:
+```bash
+# Check D&T mod environment settings
+jq '.files[] | select(.path | contains("dungeons")) | {path: .path, env: .env}' modrinth.index.json
+# Should show client: "required", server: "required" for all D&T mods
+```
+
 #### Build Failures
 **Symptom**: [build.sh](../build.sh) fails with mod lookup errors
 **Solution**: 
@@ -823,7 +835,7 @@ Use these commands to validate the complete system:
 jq '.files | length' modrinth.index.json  # Should show 140+
 jq '.files[] | select(.downloads[0] == null)' modrinth.index.json  # Should be empty
 
-# Check server-only mods (Dungeons & Taverns)
+# Check universal mods (Dungeons & Taverns)
 jq '.files[] | select(.env.server == "required" and .env.client == "unsupported") | .path' modrinth.index.json
 
 # Validate repository cleanliness (no binary artifacts)
