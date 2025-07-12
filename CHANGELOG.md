@@ -1,7 +1,7 @@
-Survival Not Guaranteed v3.12.6
+Survival Not Guaranteed v3.12.5
 
 Release Date: July 11, 2025
-Previous Version: 3.12.6
+Previous Version: 3.12.5
 
 OTHER CHANGES
 

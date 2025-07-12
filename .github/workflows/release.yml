@@ -42,31 +42,44 @@ jobs:
         sudo apt-get install -y jq curl wget
         npm install -g modrinth
         
-    - name: Validate and prepare release
-      id: version
+    - name: Download mods and build modpack
+      id: build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
-        echo "- Validating pre-built modpack and determining version..."
+        echo "- Downloading mods and building modpack from manifest..."
         
-        # Check if modpack exists
-        MRPACK_FILE=$(find . -name "*.mrpack" -type f | head -1)
-        if [ -z "$MRPACK_FILE" ]; then
-          echo "ERROR: No .mrpack file found! Please build locally first."
-          exit 1
+        # Set environment variables for build script
+        export GITHUB_REPO="${{ github.repository }}"
+        export MODRINTH_PROJECT="${{ vars.MODRINTH_PROJECT_ID }}"
+        export STRICT_EXTERNAL_DOWNLOADS="true"
+        
+        # Create mods directory if it doesn't exist
+        mkdir -p mods
+        
+        # Download mods based on existing manifest (if it exists) for faster build
+        if [ -f "modrinth.index.json" ]; then
+          echo "- Pre-downloading mods from existing manifest for faster build..."
+          while IFS= read -r url; do
+            if [ -n "$url" ] && [ "$url" != "null" ]; then
+              filename=$(basename "$url")
+              if [ ! -f "mods/$filename" ]; then
+                echo "  Downloading: $filename"
+                curl -L -o "mods/$filename" "$url" 2>/dev/null || echo "    Failed to download $filename"
+              fi
+            fi
+          done < <(jq -r '.files[]?.downloads[]?' modrinth.index.json 2>/dev/null | head -200)
         fi
-        echo "+ Found modpack: $MRPACK_FILE"
         
-        # Validate manifest exists
-        if [ ! -f "modrinth.index.json" ]; then
-          echo "ERROR: No modrinth.index.json found! Please build locally first."
-          exit 1
-        fi
-        echo "+ Found manifest: modrinth.index.json"
+        # Make build script executable
+        chmod +x build.sh
         
-        # Get current version from manifest
+        # Run build script to generate fresh .mrpack from manifest
+        echo "- Running build script to generate modpack..."
+        
+        # Get current version from manifest for version bump logic
         CURRENT_VERSION=$(jq -r '.versionId' modrinth.index.json)
         echo "+ Current version in manifest: $CURRENT_VERSION"
         
@@ -92,7 +105,7 @@ jobs:
         
         if echo "$CHANGED_FILES" | grep -q "modrinth.index.json"; then
           # Check if this is a mod addition/removal (minor) or just config change (patch)
-          if git show HEAD:modrinth.index.json 2>/dev/null | jq -r '.files | length' 2>/dev/null > /tmp/old_count && \
+          if git show "$LAST_TAG:modrinth.index.json" 2>/dev/null | jq -r '.files | length' 2>/dev/null > /tmp/old_count && \
              jq -r '.files | length' modrinth.index.json > /tmp/new_count; then
             OLD_COUNT=$(cat /tmp/old_count)
             NEW_COUNT=$(cat /tmp/new_count)
@@ -119,46 +132,51 @@ jobs:
         
         echo "+ Version bump: $CURRENT_VERSION -> $NEW_VERSION ($BUMP_TYPE)"
         
-        # Update manifest version
-        echo "- Updating manifest version..."
-        jq --arg version "$NEW_VERSION" '.versionId = $version' modrinth.index.json > modrinth.index.json.tmp
-        mv modrinth.index.json.tmp modrinth.index.json
+        # Run build script with version override
+        ./build.sh --version "$NEW_VERSION"
         
-        # Update mrpack filename if needed
-        NEW_MRPACK_NAME="Survival Not Guaranteed-$NEW_VERSION.mrpack"
-        if [ "$(basename "$MRPACK_FILE")" != "$NEW_MRPACK_NAME" ]; then
-          echo "- Renaming mrpack file to match version..."
-          mv "$MRPACK_FILE" "$NEW_MRPACK_NAME"
-          MRPACK_FILE="$NEW_MRPACK_NAME"
+        # Verify build output
+        MRPACK_FILE=$(find . -name "*.mrpack" -type f | head -1)
+        if [ -z "$MRPACK_FILE" ]; then
+          echo "ERROR: Build script failed to create .mrpack file!"
+          exit 1
         fi
+        echo "+ Successfully built: $MRPACK_FILE"
         
-        # Outputs for next steps
-        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-        echo "mrpack_file=$MRPACK_FILE" >> $GITHUB_OUTPUT
+        # Verify manifest was generated
+        if [ ! -f "modrinth.index.json" ]; then
+          echo "ERROR: Build script failed to generate modrinth.index.json!"
+          exit 1
+        fi
+        echo "+ Successfully generated: modrinth.index.json"
         
-        # Check if changelog exists
+        # Get version from generated manifest
+        NEW_VERSION=$(jq -r '.versionId' modrinth.index.json)
+        echo "+ Generated version: $NEW_VERSION"
+        
+        # Check if changelog was generated
         if [ -f "CHANGELOG.md" ]; then
           echo "changelog_file=CHANGELOG.md" >> $GITHUB_OUTPUT
-          echo "+ Found changelog: CHANGELOG.md"
-        else
-          echo "+ No changelog found, will use default"
+          echo "+ Found generated changelog: CHANGELOG.md"
         fi
         
-        echo "+ Release preparation complete"
+        # Output for next steps
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "mrpack_file=$MRPACK_FILE" >> $GITHUB_OUTPUT
       
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        VERSION="${{ steps.version.outputs.new_version }}"
-        MRPACK_FILE="${{ steps.version.outputs.mrpack_file }}"
+        VERSION="${{ steps.build.outputs.new_version }}"
+        MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
         
         echo "- Creating GitHub release for version $VERSION..."
         
         # Create release notes
-        if [ -f "${{ steps.version.outputs.changelog_file }}" ]; then
+        if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
           echo "- Using generated changelog for GitHub release..."
-          RELEASE_NOTES=$(cat "${{ steps.version.outputs.changelog_file }}")
+          RELEASE_NOTES=$(cat "${{ steps.build.outputs.changelog_file }}")
         else
           echo "- Using default release notes..."
           RELEASE_NOTES="## Survival Not Guaranteed v$VERSION
@@ -232,8 +250,8 @@ jobs:
         MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
       run: |
-        VERSION="${{ steps.version.outputs.new_version }}"
-        MRPACK_FILE="${{ steps.version.outputs.mrpack_file }}"
+        VERSION="${{ steps.build.outputs.new_version }}"
+        MRPACK_FILE="${{ steps.build.outputs.mrpack_file }}"
         
         echo "- Enhanced Modrinth sync and upload process..."
         
@@ -323,9 +341,9 @@ jobs:
         fi
         
         # Create changelog
-        if [ -f "${{ steps.version.outputs.changelog_file }}" ]; then
+        if [ -f "${{ steps.build.outputs.changelog_file }}" ]; then
           echo "- Using generated changelog from build script..."
-          CHANGELOG=$(cat "${{ steps.version.outputs.changelog_file }}")
+          CHANGELOG=$(cat "${{ steps.build.outputs.changelog_file }}")
           echo "+ Generated changelog loaded ($(echo "$CHANGELOG" | wc -c) chars)"
         else
           echo "- Using default changelog..."
@@ -342,27 +360,22 @@ jobs:
         
     - name: Commit and push version update
       run: |
-        VERSION="${{ steps.version.outputs.new_version }}"
+        VERSION="${{ steps.build.outputs.new_version }}"
         
         # Configure git
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Check if there are changes to commit
+        # Note: We don't commit the .mrpack file - it's built on-demand by CI
+        # We only track the source files (configs, scripts, etc.) that define the modpack
+        
+        # Check if there are changes to commit (there shouldn't be any since we build from manifest)
         if git diff --quiet && git diff --cached --quiet; then
-          echo "No changes to commit"
+          echo "No changes to commit - workflow builds from existing manifest"
+          echo "+ Version $VERSION built and released successfully from manifest"
           exit 0
+        else
+          echo "WARNING: Unexpected changes detected during CI build:"
+          git status --porcelain
+          echo "The above changes were not committed to maintain clean repository state"
         fi
-        
-        # Commit changes (manifest version update and possibly mrpack rename)
-        git add modrinth.index.json *.mrpack
-        git commit -m "Update version to $VERSION
-
-        - Automated version bump from GitHub Actions
-        - Updated modrinth.index.json version field
-        - Release $VERSION created and uploaded to platforms"
-        
-        # Push changes
-        git push origin main
-        
-        echo "+ Version update committed and pushed"

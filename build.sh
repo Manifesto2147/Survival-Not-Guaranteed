@@ -8,6 +8,22 @@ set -e
 
 echo "Building .mrpack with comprehensive mirror support..."
 
+# Parse command line arguments
+OVERRIDE_VERSION=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --version)
+      OVERRIDE_VERSION="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      echo "Usage: $0 [--version VERSION]"
+      exit 1
+      ;;
+  esac
+done
+
 # Configuration
 MODS_DIR="mods"
 CURSEFORGE_API_KEY="${CURSEFORGE_API_KEY:-}"
@@ -544,6 +560,14 @@ increment_version() {
 
 get_latest_version() {
   echo "- Detecting version..."
+  
+  # Check if version is overridden (for CI)
+  if [ -n "$OVERRIDE_VERSION" ]; then
+    echo "- Using CI-provided version override: $OVERRIDE_VERSION"
+    CURRENT_VERSION="$OVERRIDE_VERSION"
+    echo "+ Using version: $CURRENT_VERSION"
+    return
+  fi
   
   # Check GitHub releases
   LATEST_GITHUB_VERSION=""
