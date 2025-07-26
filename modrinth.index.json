@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "game": "minecraft",
-  "versionId": "3.12.6",
+  "versionId": "3.12.12",
   "name": "Survival Not Guaranteed",
   "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
   "files": [
@@ -366,18 +366,18 @@
       ]
     },
     {
-      "path": "mods/ColdSweat-2.4-b03c.jar",
+      "path": "mods/ColdSweat-2.4-b04a.jar",
       "hashes": {
-        "sha1": "0c6ee793c36980cb4f153dc8fc4e06dc66ed4b13",
-        "sha512": "42de0825a14eb715fcf17807fc4918607dfe435908d32baf3e1fc8116f4eb34203dffa88682621494cc8287e086a228f864ec1e2463e1f0869597773746d6826"
+        "sha1": "00596828378bd0498154ad6917ef5b199086d2b4",
+        "sha512": "146b6ac643a5a036d7269225b24cb03d5dec3d8fe38c08699af30b3b107f531b0f2855792e377a4cdc12fa89c075605a26eebe2635e096e166fad8990914f66b"
       },
       "env": {
         "client": "required",
         "server": "required"
       },
-      "fileSize": 2401350,
+      "fileSize": 2465248,
       "downloads": [
-        "https://cdn.modrinth.com/data/uXhSmPjd/versions/UjsbvVeE/ColdSweat-2.4-b03c.jar"
+        "https://cdn.modrinth.com/data/uXhSmPjd/versions/qttbyDgT/ColdSweat-2.4-b04a.jar"
       ]
     },
     {
@@ -2108,6 +2108,6 @@
   ],
   "dependencies": {
     "minecraft": "1.21.1",
-    "neoforge": "21.1.180"
+    "neoforge": "21.1.194"
   }
 }

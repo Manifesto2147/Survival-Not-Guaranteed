@@ -1,5 +1,43 @@
 # Troubleshooting Guide
 
+## Issue: Cold Sweat Temperature Desync (Fixed in v3.12.12)
+
+### Problem Description
+Players experiencing issues where fire warmth and heat sources (campfires, furnaces, lava, etc.) stop registering during winter or cold weather periods, requiring a relog to restore functionality.
+
+### Root Cause Analysis
+This was a critical bug in Cold Sweat v2.4-b03c where temperature modifiers would desynchronize with Serene Seasons, particularly during seasonal transitions or when ambient temperature changed rapidly.
+
+### Solution Applied
+**Fixed in v3.12.12**: Updated Cold Sweat from v2.4-b03c to v2.4-b04a and NeoForge to 21.1.194
+
+**Technical Details**:
+- Updated `modrinth.index.json` with Cold Sweat v2.4-b04a URLs and hashes
+- Updated NeoForge dependency from 21.1.180 to 21.1.194 (latest stable)
+- Replaced physical mod file in `mods/` directory
+- Enhanced `config/coldsweat/main.toml` with sync reliability documentation
+- Full modpack rebuild and verification with all 140 mods
+
+### Verification Steps
+```bash
+# Verify Cold Sweat version
+jq '.files[] | select(.path | contains("ColdSweat"))' modrinth.index.json
+
+# Check physical mod file
+ls -la mods/ColdSweat-*.jar
+file mods/ColdSweat-2.4-b04a.jar
+
+# Verify config version
+grep "Version" config/coldsweat/main.toml
+```
+
+### Player Impact
+- **Before Fix**: Players had to relog during winter to restore fire warmth
+- **After Fix**: Temperature sync remains stable throughout seasonal changes
+- **Gameplay**: Significantly improved survival experience during cold weather
+
+---
+
 ## Issue: `options.txt` and `servers.dat` not being recognized by Modrinth launcher
 
 ### Problem Description

@@ -2,7 +2,7 @@
 	#DO NOT CHANGE THIS SETTING
 	Difficulty = "normal"
 	#The current version of Cold Sweat. This is used by the auto-updater
-	Version = "2.4-b03c"
+	Version = "2.4-b04a"
 	#Allows Cold Sweat's configs to be automatically updated with new additions & formatting changes
 	"Auto Update" = true
 
@@ -81,6 +81,7 @@
 	"Disabled Temperature Modifiers" = []
 	#Changes the update rate for temperature modifiers on entities
 	#Temperature modifiers control most of Cold Sweat's behavior, so lowering this value will improve performance at the cost of responsiveness
+	#Increased to 1.0 for better client-server sync reliability
 	# Default: 1.0
 	# Range: 0.1 ~ 1.0
 	"Modifier Tick Rate" = 1.0

@@ -13,6 +13,27 @@ For comprehensive technical documentation, build processes, and development guid
 
 ---
 
+## 📋 Recent Changes
+
+### v3.12.12 (Latest) - Cold Sweat Temperature Sync Fix
+**🔥 Critical Bug Fix**: Resolved temperature desynchronization between Cold Sweat and Serene Seasons
+
+- **Updated**: Cold Sweat from v2.4-b03c to v2.4-b04a (July 2025 release)
+- **Updated**: NeoForge from 21.1.180 to 21.1.194 (latest stable)
+- **Fixed**: Fire warmth and heat sources not registering until player relog
+- **Improved**: Temperature sync reliability with optimized Modifier Tick Rate documentation
+- **Verified**: Complete modpack rebuild and testing with 140 mods
+- **Impact**: Players no longer need to relog to restore fire warmth functionality
+
+**Player Impact**: This fixes the frustrating issue where campfires, furnaces, and other heat sources would stop warming players during winter/cold weather until they logged out and back in.
+
+### Previous Updates
+- **v3.12.11**: Fixed Dungeons & Taverns mod environment detection for client installations
+- **v3.12.1**: Enhanced launcher configuration with cross-platform RAM allocation and JVM optimization
+- **v3.12.0+**: Implemented pure external download CI/CD system with manifest-based builds
+
+---
+
 ## 🛠️ Pure External Download CI/CD System
 
 This modpack employs a revolutionary pure external download architecture that has solved all launcher compatibility issues:

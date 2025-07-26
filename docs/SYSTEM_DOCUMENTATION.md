@@ -16,7 +16,7 @@
 
 ## System Overview
 
-Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 featuring 140 carefully curated mods. The project employs a sophisticated automated management system designed for zero-intervention operations, comprehensive dependency management, and reliable deployment.
+Survival Not Guaranteed is a Minecraft modpack built on NeoForge 1.21.1 (v21.1.194) featuring 140 carefully curated mods. The project employs a sophisticated automated management system designed for zero-intervention operations, comprehensive dependency management, and reliable deployment.
 
 ### Key Characteristics
 - **Target Audience**: Players seeking challenging survival gameplay with fantasy RPG elements
@@ -826,7 +826,7 @@ jq '.files[] | select(.path | contains("dungeons")) | {path: .path, env: .env}' 
    grep "CI_MODE\|STRICT_EXTERNAL" .github/workflows/release.yml
    ```
 
-### Validation Commands for Pure External Architecture
+### Verification Commands for Pure External Architecture
 
 Use these commands to validate the complete system:
 
@@ -1044,3 +1044,40 @@ The build system automatically determines version increments based on actual mod
 - Major NeoForge version change               → 4.0.0 → 5.0.0
 - Complete modpack overhaul                   → 5.0.0 → 6.0.0
 ```
+
+#### Cold Sweat Temperature Desync (Fixed in v3.12.12)
+**Symptom**: Fire warmth and heat sources stop registering for players during winter/cold weather until they relog
+**Root Cause**: Temperature synchronization bug between Cold Sweat v2.4-b03c and Serene Seasons
+**Impact**: Critical gameplay issue affecting survival mechanics during cold weather
+
+**Detailed Analysis**:
+- Cold Sweat v2.4-b03c had a known sync bug where temperature modifiers would desynchronize
+- Serene Seasons winter temperature changes would trigger the desync condition
+- Players would be unable to warm up at campfires, furnaces, or other heat sources
+- Only workaround was relogging to restore temperature sync
+
+**Solution Applied**:
+1. **Updated Cold Sweat**: Upgraded from v2.4-b03c to v2.4-b04a (July 2025 release)
+2. **Updated NeoForge**: Upgraded from 21.1.180 to 21.1.194 (latest stable)
+3. **Manifest Update**: Updated `modrinth.index.json` with correct Modrinth URLs and hashes
+4. **Config Documentation**: Enhanced `config/coldsweat/main.toml` with sync reliability notes
+5. **Full Testing**: Built and verified complete modpack with 140 mods
+
+**Verification Commands**:
+```bash
+# Check Cold Sweat version in manifest
+jq '.files[] | select(.path | contains("ColdSweat")) | {path: .path, downloads: .downloads}' modrinth.index.json
+
+# Verify physical mod file
+ls -la mods/ColdSweat-*.jar
+file mods/ColdSweat-2.4-b04a.jar
+
+# Check config version
+grep "Version" config/coldsweat/main.toml
+```
+
+**Prevention**: This type of issue can be prevented by:
+- Regular monitoring of mod update changelogs for critical bug fixes
+- Testing temperature mechanics during seasonal transitions
+- Monitoring player feedback for sync-related issues
+- Maintaining documentation of known compatibility issues

@@ -30,7 +30,7 @@ CURSEFORGE_API_KEY="${CURSEFORGE_API_KEY:-}"
 PROJECT_NAME="Survival Not Guaranteed"
 MINECRAFT_VERSION="1.21.1"
 MODLOADER="neoforge"
-NEOFORGE_VERSION="21.1.180"
+NEOFORGE_VERSION="21.1.194"
 
 # Project configuration for version checking
 GITHUB_REPO="Manifesto2147/Survival-Not-Guaranteed"
