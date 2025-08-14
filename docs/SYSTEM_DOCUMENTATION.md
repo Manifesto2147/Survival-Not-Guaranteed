@@ -7,12 +7,13 @@
 3. [Core Components](#core-components)
 4. [Automation System](#automation-system)
 5. [Management Tools](#management-tools)
-6. [Build System](#build-system)
-7. [Version Management](#version-management)
-8. [Deployment Pipeline](#deployment-pipeline)
-9. [File Structure](#file-structure)
-10. [Configuration Management](#configuration-management)
-11. [Troubleshooting and Maintenance](#troubleshooting-and-maintenance)
+6. [Wave-Based Update System](#wave-based-update-system)
+7. [Build System](#build-system)
+8. [Version Management](#version-management)
+9. [Deployment Pipeline](#deployment-pipeline)
+10. [File Structure](#file-structure)
+11. [Configuration Management](#configuration-management)
+12. [Troubleshooting and Maintenance](#troubleshooting-and-maintenance)
 
 ## System Overview
 
@@ -125,43 +126,30 @@ get_manual_environment_override() {
 
 ### 3. Management Tools
 
-#### [manage-modpack.sh](../manage-modpack.sh)
-Unified interface for all modpack operations:
-- **validate**: Directory structure and configuration validation
-- **update**: Mod updates from modrinth.index.json
-- **fix-data**: Data validation error correction
-- **check-deps**: Dependency validation
-- **full-check**: Comprehensive system validation
+#### Current Management Tools
 
-#### [fix-data-validation-errors.sh](../fix-data-validation-errors.sh)
-Automated data integrity maintenance:
-- Recipe file validation and repair
-- Loot table verification
-- Tag system validation
-- Dependency conflict resolution
+**Wave-Based Update System** (`tools/wave-based-update.sh`):
+- Dependency-aware mod updating with safety mechanisms
+- Multi-platform mod source prioritization (Modrinth → CurseForge → GitHub)
+- Automated backup creation with rollback capabilities
+- Wave-based update processing to maintain modpack stability
 
-#### [validate-directory-structure.sh](../validate-directory-structure.sh)
-PrismLauncher compatibility validator:
-- Directory structure verification
-- Path reference validation in scripts
-- Configuration file integrity checking
-- Manifest path validation
+**Build System** (`build.sh`):
+- .mrpack generation with manifest preservation
+- CI/CD integration with pure external download architecture
+- Local development and production build modes
+- Version management and collision avoidance
 
-### 4. Update System ([tools/update-mods.sh](../tools/update-mods.sh))
-Advanced automatic update system with:
+**External Mod Checker** (`check-external-mods.sh`):
+- Validates external download links in manifest
+- Verifies mod availability and accessibility
+- Reports broken or outdated download URLs
 
-**Features:**
-- Zero-intervention automated updates
-- Dependency constraint solving
-- Backup and rollback capabilities
-- File integrity verification
-- Environment override support
-
-**Safety Mechanisms:**
-- Pre-update backups with metadata
-- Validation before and after updates
-- Automatic rollback on failure
-- Conservative update policies for critical mods
+**Legacy Tools** (references cleaned up):
+- `manage-modpack.sh` - No longer exists (functionality moved to specialized tools)
+- `update-mods.sh` - Replaced by `wave-based-update.sh`
+- `fix-data-validation-errors.sh` - No longer needed
+- `validate-directory-structure.sh` - Functionality integrated into build system
 
 ## Automation System
 
@@ -280,24 +268,20 @@ Triggered on develop branch changes:
 ### Command Reference
 
 ```bash
-# Unified Management
-[../manage-modpack.sh](../manage-modpack.sh) validate        # Validate all systems
-[../manage-modpack.sh](../manage-modpack.sh) update          # Update mods
-[../manage-modpack.sh](../manage-modpack.sh) fix-data        # Fix data errors
-[../manage-modpack.sh](../manage-modpack.sh) check-deps      # Validate dependencies
-[../manage-modpack.sh](../manage-modpack.sh) full-check      # Run all checks
+# Core Tools
+./build.sh                                      # Build .mrpack for distribution
+./tools/wave-based-update.sh                   # Update mods with dependency awareness
+./check-external-mods.sh                       # Validate external download links
 
-# Direct Tools
-[../build.sh](../build.sh)                          # Build .mrpack
-[../tools/update-mods.sh](../tools/update-mods.sh)         # Update mods with constraints
-[../validate-directory-structure.sh](../validate-directory-structure.sh)   # Validate directory structure
-[../fix-data-validation-errors.sh](../fix-data-validation-errors.sh)     # Fix data validation issues
+# Wave-Based Update Options
+./tools/wave-based-update.sh                   # Standard update run
+DRY_RUN=true ./tools/wave-based-update.sh      # Preview updates only
+DEBUG=true ./tools/wave-based-update.sh        # Verbose debug output
+FORCE_ENV_UPDATE=true ./tools/wave-based-update.sh  # Force environment optimization
 
-# Update System Options
-[../tools/update-mods.sh](../tools/update-mods.sh) --dry-run     # Preview updates
-[../tools/update-mods.sh](../tools/update-mods.sh) --validate    # Validate files only
-[../tools/update-mods.sh](../tools/update-mods.sh) --rollback    # Rollback last update
-[../tools/update-mods.sh](../tools/update-mods.sh) --force       # Force risky updates
+# Build System Options
+./build.sh --version 3.12.14                   # Build with specific version
+CI_MODE=true ./build.sh                         # CI mode (preserve manifest)
 ```
 
 ### Safety Features
@@ -319,6 +303,227 @@ Triggered on develop branch changes:
 - Detailed error logging
 - Recovery suggestions
 - Safe failure modes
+
+## Wave-Based Update System
+
+### Overview
+
+The `wave-based-update.sh` script is the core mod update system for Survival Not Guaranteed. It implements a sophisticated dependency-aware update strategy that safely updates mods in waves based on their interdependencies, ensuring modpack stability throughout the update process.
+
+### Core Architecture
+
+#### **Platform Prioritization**
+The system prioritizes mod platforms in the following order:
+1. **Modrinth** (Primary) - Modern API, excellent metadata, reliable versioning
+2. **CurseForge** (Secondary) - Legacy support for mods not yet on Modrinth
+3. **GitHub/Other** (Fallback) - Direct releases for specialized mods
+
+#### **Dependency-Aware Wave System**
+Mods are categorized into update waves based on their dependency relationships:
+
+- **Wave 1 - Independent Mods**: No dependencies on other mods (libraries, utilities)
+- **Wave 2 - Consumer Mods**: Depend on Wave 1 mods but provide no dependencies
+- **Wave 3 - Provider Mods**: Provide dependencies for other mods (APIs, frameworks)
+- **Wave 4 - Protected Mods**: Critical mods that require manual review (Core, NeoForge)
+
+### Key Features
+
+#### **Enhanced Mod Detection**
+```bash
+# JAR Metadata Analysis
+extract_mod_metadata() {
+    # Extracts metadata from:
+    # - META-INF/neoforge.mods.toml (NeoForge mods)
+    # - META-INF/fabric.mod.json (Fabric mods)
+    # - mcmod.info (Legacy Forge mods)
+    # - Special handling for complex mods (KotlinForForge, etc.)
+}
+```
+
+#### **Intelligent Version Comparison**
+- Semantic version parsing (1.2.3, 1.2.3-beta.1)
+- Minecraft version compatibility checking
+- Filename-based fallback for mods using `${file.jarVersion}`
+- Prevention of downgrades and unnecessary updates
+
+#### **Dependency Graph Building**
+```bash
+build_dependency_graph() {
+    # Creates comprehensive dependency maps:
+    # - MOD_DEPENDENCIES: mod_id -> [dep1, dep2, dep3]
+    # - MOD_DEPENDENTS: mod_id -> [dependent1, dependent2]
+    # - Handles optional and required dependencies
+    # - Resolves circular dependencies safely
+}
+```
+
+#### **Safe Update Waves**
+The system processes updates in dependency-safe waves:
+
+1. **Wave 1**: Updates independent mods first (safe to update anytime)
+2. **Wave 2**: Updates consumer mods after their dependencies are current
+3. **Wave 3**: Updates provider mods carefully to maintain compatibility
+4. **Wave 4**: Flags protected mods for manual review
+
+### Usage
+
+#### **Basic Operations**
+```bash
+# Standard update run
+./tools/wave-based-update.sh
+
+# Dry run (preview changes only)
+DRY_RUN=true ./tools/wave-based-update.sh
+
+# Force environment optimization
+FORCE_ENV_UPDATE=true ./tools/wave-based-update.sh
+
+# Debug mode with verbose logging
+DEBUG=true ./tools/wave-based-update.sh
+```
+
+#### **Configuration Options**
+```bash
+# Environment Variables
+MINECRAFT_VERSION="1.21.1"          # Target Minecraft version
+DRY_RUN=false                        # Preview mode
+FORCE_ENV_UPDATE=false              # Force environment optimization
+CURSEFORGE_API_KEY=""               # CurseForge API access
+DEBUG=false                         # Verbose logging
+```
+
+### Technical Implementation
+
+#### **Mod Platform Detection**
+The system intelligently identifies mod sources using multiple methods:
+
+1. **JAR Metadata Analysis**: Extracts `mod_id` and project URLs from mod metadata
+2. **Modrinth API Lookup**: Uses mod IDs to find Modrinth projects
+3. **CurseForge Fallback**: Falls back to CurseForge for non-Modrinth mods
+4. **GitHub Detection**: Handles direct GitHub releases and custom sources
+
+#### **Version Resolution Strategy**
+```bash
+# Version extraction handles multiple formats:
+- Semantic versions: "1.2.3", "1.2.3-beta.1"
+- Minecraft versioned: "1.21.1-5.10.3"
+- File-based versions: "${file.jarVersion}" -> extracted from filename
+- Custom formats: Mod-specific parsing rules
+```
+
+#### **Dependency Safety Mechanisms**
+- **Pre-update validation**: Ensures all dependencies will remain satisfied
+- **Wave ordering**: Updates dependencies before dependents
+- **Rollback capability**: Can revert to previous state if issues arise
+- **Environment checking**: Validates client/server compatibility
+
+#### **API Integration**
+```bash
+# Modrinth API (Primary)
+GET /v2/project/{id}/version
+GET /v2/project/{id}
+GET /v2/version/{version_id}
+
+# CurseForge API (Secondary)  
+GET /v1/mods/{mod_id}
+GET /v1/mods/{mod_id}/files
+```
+
+### Safety Features
+
+#### **Backup System**
+- Automatic backup creation before any changes
+- Timestamped backup directories in `backup_YYYYMMDD_HHMMSS/`
+- Complete mod collection preservation
+- Easy rollback via `cp -r backup_*/. mods/`
+
+#### **Validation System**
+- **Pre-update**: Validates mod files and dependencies
+- **Post-update**: Verifies all updates succeeded
+- **Integrity checking**: Confirms file hashes and sizes
+- **Dependency verification**: Ensures no broken dependencies
+
+#### **Error Handling**
+- Graceful degradation on API failures
+- Detailed error logging with context
+- Automatic retry mechanisms for network issues
+- Safe exit on critical failures
+
+### Output and Logging
+
+#### **Progress Indicators**
+```bash
+[INFO] Auto-detecting mods using enhanced JAR metadata analysis...
+[GRAPH] Building dependency graph from 140 detected mods...
+[WAVE] Processing Wave 1 (Independent): 45 mods
+[ACTION] Updating ColdSweat from 2.4-b03 to 2.4-b04a
+[SUCCESS] Wave 1 completed: 12 updates, 33 current
+```
+
+#### **Update Summary**
+```bash
+=== UPDATE SUMMARY ===
+Total mods processed: 140
+Total updates available: 23
+Updates performed: 18
+Skipped (protected): 3
+Errors: 2
+
+Wave 1 (Independent): 12/15 updated
+Wave 2 (Consumers): 6/8 updated  
+Wave 3 (Providers): 0/0 updated
+Wave 4 (Protected): 0/3 updated (manual review required)
+```
+
+### Integration Points
+
+#### **Build System Integration**
+The wave-based update system integrates seamlessly with the build pipeline:
+
+1. **Update mods**: `./tools/wave-based-update.sh`
+2. **Rebuild manifest**: `./build.sh` (scans updated mods)
+3. **Generate .mrpack**: Ready for testing and distribution
+
+#### **CI/CD Pipeline**
+While CI uses the preserved manifest, the update system can be used locally:
+- Update mods in development environment
+- Test updated modpack locally
+- Commit updated manifest when ready
+- CI builds from the updated manifest
+
+### Troubleshooting
+
+#### **Common Issues**
+1. **API Rate Limits**: System includes automatic backoff and retry
+2. **Dependency Conflicts**: Review Wave 4 protected mods manually
+3. **Version Detection Failures**: Check mod metadata format
+4. **Network Issues**: Verify internet connection and API access
+
+#### **Debug Information**
+```bash
+# Enable debug mode for detailed information
+DEBUG=true ./tools/wave-based-update.sh
+
+# Check specific mod detection
+unzip -p mods/modname.jar META-INF/neoforge.mods.toml | head -20
+
+# Verify API responses
+curl -s "https://api.modrinth.com/v2/project/mod-id/version" | jq '.[0]'
+```
+
+### Maintenance
+
+#### **Regular Maintenance Tasks**
+1. **Weekly Updates**: Run update system to keep mods current
+2. **Dependency Review**: Monitor Wave 4 mods for manual updates
+3. **API Key Rotation**: Update CurseForge API keys as needed
+4. **Backup Cleanup**: Remove old backup directories periodically
+
+#### **Version Compatibility**
+The system automatically handles Minecraft version transitions:
+- Detects optimal Minecraft/NeoForge versions
+- Suggests environment updates when beneficial
+- Maintains compatibility during version migrations
 
 ## Build System
 
@@ -571,14 +776,13 @@ Survival Not Guaranteed/
 ├── scripts/                 # CraftTweaker scripts
 ├── shaderpacks/             # Shader files
 ├── tools/
-│   ├── core/
-│   │   ├── [update-mods.sh](../tools/update-mods.sh)  # Advanced update system
-│   │   └── [validate-dependencies.sh](../tools/validate-dependencies.sh)
-│   └── [create_test_pack.sh](../tools/create_test_pack.sh)  # Diagnostic tool
+│   ├── [wave-based-update.sh](../tools/wave-based-update.sh)  # Dependency-aware update system
+│   ├── [create_test_pack.sh](../tools/create_test_pack.sh)    # Diagnostic tool
+│   ├── [test-whitelisted-search.sh](../tools/test-whitelisted-search.sh)  # Search testing
+│   ├── README.md           # Tools documentation
+│   └── SYSTEM_DOCUMENTATION.md  # Tools system docs
 ├── [build.sh](../build.sh)                # Main build script
-├── [manage-modpack.sh](../manage-modpack.sh)       # Unified management interface
-├── [fix-data-validation-errors.sh](../fix-data-validation-errors.sh)
-├── [validate-directory-structure.sh](../validate-directory-structure.sh)
+├── [check-external-mods.sh](../check-external-mods.sh)  # External download validator
 ├── modrinth.index.json     # Modpack manifest
 ├── mod_overrides.conf      # URL overrides
 ├── options.txt             # Minecraft client settings (GUI scale, performance)
@@ -659,28 +863,30 @@ jq '.files[] | select(.path | contains("dungeons")) | {path: .path, env: .env}' 
 4. Check mod availability on Modrinth/CurseForge
 
 #### Update Failures
-**Symptom**: [update-mods.sh](../tools/update-mods.sh) fails during mod updates
+**Symptom**: Wave-based update system fails during mod updates
 **Solution**:
-1. Run `../tools/update-mods.sh --rollback`
-2. Check dependency constraints
-3. Use `--force` flag for critical updates
-4. Manually resolve conflicts in [mod_overrides.conf](../mod_overrides.conf)
+1. Check backup directories for rollback: `cp -r backup_YYYYMMDD_HHMMSS/. mods/`
+2. Review dependency conflicts in Wave 4 (Protected) mods
+3. Run with debug mode: `DEBUG=true ./tools/wave-based-update.sh`
+4. Check specific mod issues in the dependency graph output
+5. Use dry-run mode to preview changes: `DRY_RUN=true ./tools/wave-based-update.sh`
 
-#### Validation Errors
-**Symptom**: Scripts report directory structure issues
+#### Build System Issues
+**Symptom**: Build script fails or produces invalid .mrpack
 **Solution**:
-1. Run `../validate-directory-structure.sh`
-2. Ensure PrismLauncher directory structure is intact
-3. Verify all scripts reference correct paths
-4. Check file permissions on scripts
+1. Verify all mods are present in `mods/` directory
+2. Check `modrinth.index.json` manifest validity with `jq . modrinth.index.json`
+3. Validate external download links with `./check-external-mods.sh`
+4. Review build log for specific file issues
 
 #### Dependency Conflicts
 **Symptom**: Mods fail to load due to missing dependencies
 **Solution**:
-1. Run `[../manage-modpack.sh](../manage-modpack.sh) check-deps`
-2. Update [modrinth.index.json](../modrinth.index.json) with missing dependencies
-3. Verify mod versions are compatible
-4. Check for functional equivalents (e.g., ColdSweat for ToughAsNails)
+1. Review dependency graph output from `./tools/wave-based-update.sh`
+2. Check Wave 4 (Protected) mods for manual updates needed
+3. Update [modrinth.index.json](../modrinth.index.json) with missing dependencies
+4. Verify mod versions are compatible with current Minecraft/NeoForge
+5. Check for functional equivalents (e.g., ColdSweat for ToughAsNails)
 
 #### Git Tracking Issues
 **Symptom**: Mods directory appears in Git status or repository size is too large
@@ -855,32 +1061,33 @@ unzip -p "*.mrpack" modrinth.index.json | jq '.files | length'  # Should match m
 
 #### Regular Maintenance (Weekly)
 ```bash
-[../manage-modpack.sh](../manage-modpack.sh) full-check      # Complete system validation
-[../tools/update-mods.sh](../tools/update-mods.sh) --dry-run  # Check for available updates
+./tools/wave-based-update.sh           # Update mods with dependency awareness
+DRY_RUN=true ./tools/wave-based-update.sh  # Preview available updates
+./check-external-mods.sh               # Validate external download links
 ```
 
 #### Monthly Maintenance
 ```bash
 # Update to latest mod versions
-[../tools/update-mods.sh](../tools/update-mods.sh)
+./tools/wave-based-update.sh
 
-# Rebuild package with latest URLs
-[../build.sh](../build.sh)
+# Rebuild package with latest changes
+./build.sh
 
-# Validate all systems
-[../manage-modpack.sh](../manage-modpack.sh) validate
+# Check external download validity
+./check-external-mods.sh
 ```
 
 #### Emergency Recovery
 ```bash
-# Rollback last update
-[../tools/update-mods.sh](../tools/update-mods.sh) --rollback
+# Rollback from automatic backup
+cp -r backup_YYYYMMDD_HHMMSS/. mods/
 
-# Restore from backup (manual)
-cp backup/auto-updates/TIMESTAMP/modrinth.index.json ../
+# Restore specific files from backup
+cp backup_YYYYMMDD_HHMMSS/modrinth.index.json ./
 
-# Force rebuild
-[../build.sh](../build.sh) --force-external
+# Force rebuild after recovery
+./build.sh
 ```
 
 #### Build Verification Testing
@@ -909,21 +1116,21 @@ unzip -l "Survival Not Guaranteed-X.X.X.mrpack" | grep -E "(options|servers)"
 ### Development Guidelines
 
 #### Adding New Mods
-1. Add mod JAR to `../minecraft/mods/`
-2. Run `[../build.sh](../build.sh)` to auto-detect and add to manifest
-3. Test with `[../manage-modpack.sh](../manage-modpack.sh) validate`
+1. Add mod JAR to `mods/` directory
+2. Run `./build.sh` to auto-detect and add to manifest
+3. Test with wave-based update system to verify dependencies
 4. Commit changes to develop branch
 
 #### Modifying Environment Classification
 1. Edit `get_manual_environment_override()` in [build.sh](../build.sh)
-2. Rebuild manifest with `[../build.sh](../build.sh)`
-3. Validate changes with management tools
+2. Rebuild manifest with `./build.sh`
+3. Validate changes with `./check-external-mods.sh`
 4. Test on both client and server
 
 #### Creating New Management Tools
-1. Follow established patterns (logging, error handling, validation)
-2. Add to unified management interface ([manage-modpack.sh](../manage-modpack.sh))
-3. Include comprehensive help documentation
+1. Follow established patterns from `wave-based-update.sh` (logging, error handling, validation)
+2. Add documentation to tools/README.md
+3. Include comprehensive help documentation and safety mechanisms
 4. Test on both main and develop branches
 
 ### Diagnostic Tools
@@ -950,11 +1157,10 @@ Tools for testing .mrpack compatibility across different launchers:
 ### Essential Commands
 | Command | Purpose | Script |
 |---------|---------|--------|
-| `../build.sh` | Build .mrpack package | [build.sh](../build.sh) |
-| `../manage-modpack.sh full-check` | Complete validation | [manage-modpack.sh](../manage-modpack.sh) |
-| `../tools/update-mods.sh` | Update mods | [update-mods.sh](../tools/update-mods.sh) |
-| `../validate-directory-structure.sh` | Validate structure | [validate-directory-structure.sh](../validate-directory-structure.sh) |
-| `../tools/create_test_pack.sh` | Create minimal test .mrpack | [create_test_pack.sh](../tools/create_test_pack.sh) |
+| `./build.sh` | Build .mrpack package | [build.sh](../build.sh) |
+| `./tools/wave-based-update.sh` | Update mods with dependency awareness | [wave-based-update.sh](../tools/wave-based-update.sh) |
+| `./check-external-mods.sh` | Validate external downloads | [check-external-mods.sh](../check-external-mods.sh) |
+| `./tools/create_test_pack.sh` | Create minimal test .mrpack | [create_test_pack.sh](../tools/create_test_pack.sh) |
 
 ### Key Files
 | File | Purpose | Link |

@@ -1,5 +1,0 @@
-version:3955
-guiScale:3
-fullscreen:false
-enableVsync:true
-fov:0.0

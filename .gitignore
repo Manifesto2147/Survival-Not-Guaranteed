@@ -43,6 +43,29 @@ mrpack/
 
 # OS-specific files
 .DS_Store
+Thumbs.db
 
 # Modrinth cache
 .modrinth_cache/
+.update_cache/
+
+# Backup directories (created by update tools)
+backup_*/
+mods_backup_*/
+
+# Debug and test scripts (temporary)
+debug_*.sh
+test-*.sh
+*_test.sh
+download-*.sh
+
+# Log files and temporary files
+*.log
+*.tmp
+*.temp
+*~
+
+# Cache and temporary directories
+cache/
+temp/
+tmp/

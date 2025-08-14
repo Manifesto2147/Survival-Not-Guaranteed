@@ -48,7 +48,6 @@ MODRINTH_FOUND=0
 CURSEFORGE_FOUND=0
 MANUAL_OVERRIDES_USED=0
 PACK_INCLUDED=0
-SMART_UPDATES=0
 CLIENT_ONLY_MODS=0
 SERVER_ONLY_MOD_COUNT=0
 UNIVERSAL_MODS=0
@@ -513,6 +512,16 @@ get_manual_environment_override() {
         return
     fi
     
+    # Server-only mods that were causing environment mismatch errors
+    if [[ "$mod_name" == *"gravestonecurioscompat"* ]]; then
+        echo "server_only"
+        return
+    fi
+    if [[ "$mod_name" == *"baguettelib"* ]]; then
+        echo "server_only"
+        return
+    fi
+    
     echo ""
 }
 
@@ -904,88 +913,15 @@ lookup_mod_with_mirrors() {
   fi
 }
 
-# ==================== DEPENDENCY-AWARE UPDATE SYSTEM ====================
+# ==================== MANIFEST GENERATION ====================
 
-# Common dependency mods that should NOT be auto-updated (too risky)
-DEPENDENCY_MODS=(
-    "balm"
-    "bookshelf" 
-    "architectury"
-    "cloth-config"
-    "geckolib"
-    "kotlinforforge"
-    "moonlight"
-    "puzzleslib"
-    "collective"
-    "coroutil"
-    "creativcore"
-    "ferritecore"
-    "modernfix"
-    "libipn"
-    "sophisticatedcore"
-    "supermartijn642corelib"
-    "curios"
-    "jei"
-    "patchouli"
-    "polymorph"
-    "terralith"
-    "yungsapi"
-    "azurelib"
-    "ars_nouveau"
-)
-
-# Function to check if a mod is a dependency mod
-is_dependency_mod() {
-    local filename="$1"
-    local mod_name=$(echo "$filename" | sed 's/\.jar$//' | sed 's/-[0-9].*$//' | tr '[:upper:]' '[:lower:]')
-    
-    for dep in "${DEPENDENCY_MODS[@]}"; do
-        if [[ "$mod_name" =~ "$dep" ]]; then
-            return 0  # Is a dependency
-        fi
-    done
-    return 1  # Not a dependency
-}
-
-# Function to get latest compatible version from Modrinth
-get_latest_compatible_version() {
-    local filename="$1"
-    local base_name=$(echo "$filename" | sed 's/\.jar$//' | sed 's/-[0-9].*$//' | sed 's/_/ /g')
-    
-    # Search Modrinth
-    local search_result=$(curl -s "https://api.modrinth.com/v2/search?query=$(echo "$base_name" | sed 's/ /%20/g')&limit=5" 2>/dev/null || echo "")
-    
-    if echo "$search_result" | jq -e '.hits[0]' >/dev/null 2>&1; then
-        local project_id=$(echo "$search_result" | jq -r '.hits[0].project_id')
-        local project_title=$(echo "$search_result" | jq -r '.hits[0].title')
-        
-        # Get latest version for NeoForge 1.21.1
-        local versions=$(curl -s "https://api.modrinth.com/v2/project/$project_id/version" 2>/dev/null || echo "")
-        
-        # Find latest compatible version
-        local latest_version=$(echo "$versions" | jq -r '.[] | select(.loaders[] | contains("neoforge")) | select(.game_versions[] | contains("1.21.1")) | select(.version_type == "release" or .version_type == "beta") | .files[0]' | head -1)
-        
-        if [ -n "$latest_version" ] && [ "$latest_version" != "null" ]; then
-            local latest_url=$(echo "$latest_version" | jq -r '.url')
-            local latest_filename=$(echo "$latest_version" | jq -r '.filename')
-            local latest_hash=$(echo "$latest_version" | jq -r '.hashes.sha1')
-            local latest_size=$(echo "$latest_version" | jq -r '.size')
-            
-            echo "FOUND|$latest_url|$latest_filename|$latest_hash|$latest_size"
-            return 0
-        fi
-    fi
-    
-    return 1
-}
-
-# Function to validate hash and handle mismatches intelligently
-smart_mod_lookup() {
+# Function to lookup mod and validate hash
+lookup_mod_with_validation() {
     local file="$1"
     local filename=$(basename "$file")
     local file_hash=$(calculate_sha1 "$file")
     
-    # First try the regular lookup
+    # Try the regular lookup
     local lookup_result=$(lookup_mod_with_mirrors "$file")
     local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
     local source=$(echo "$lookup_result" | cut -d'|' -f2)
@@ -1013,35 +949,16 @@ smart_mod_lookup() {
             fi
         fi
         
-        # If we have an expected hash and it doesn't match, handle intelligently
+        # If we have an expected hash and it doesn't match, report it but don't auto-update
         if [ -n "$expected_hash" ] && [ "$expected_hash" != "null" ] && [ "$file_hash" != "$expected_hash" ]; then
             echo "  WARNING: Hash mismatch detected for $filename"
             echo "    Local: $file_hash"
             echo "    Expected: $expected_hash"
-            
-            if ! is_dependency_mod "$filename"; then
-                echo "  - Non-dependency mod - attempting smart update..."
-                
-                local update_result=$(get_latest_compatible_version "$filename")
-                if [ $? -eq 0 ]; then
-                    local new_url=$(echo "$update_result" | cut -d'|' -f2)
-                    local new_filename=$(echo "$update_result" | cut -d'|' -f3)
-                    local new_hash=$(echo "$update_result" | cut -d'|' -f4)
-                    local new_size=$(echo "$update_result" | cut -d'|' -f5)
-                    
-                    echo "  + Found updated version: $new_filename"
-                    echo "FOUND|smart-update|$new_url|$new_hash|$new_size|$new_filename"
-                    return 0
-                fi
-            else
-                echo "  NOTE: Dependency mod - will include in pack to avoid conflicts"
-                echo "INCLUDE|dependency-safety|$filename|"
-                return 0
-            fi
+            echo "  NOTE: Use './tools/wave-based-update.sh' to safely update mods"
         fi
     fi
     
-    # If no hash mismatch detected or couldn't resolve, return original result
+    # Return original result
     echo "$lookup_result"
     return 0
 }
@@ -1176,14 +1093,11 @@ generate_manifest() {
     # Determine environment settings early
     local mod_env=$(get_mod_environment "$filename")
     
-    # Lookup mod with smart update support
-    local lookup_result=$(smart_mod_lookup "$mod_file")
+    # Lookup mod with validation
+    local lookup_result=$(lookup_mod_with_validation "$mod_file")
     local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
     local source=$(echo "$lookup_result" | cut -d'|' -f2)
     local download_url=$(echo "$lookup_result" | cut -d'|' -f3)
-    local updated_hash=$(echo "$lookup_result" | cut -d'|' -f4)
-    local updated_size=$(echo "$lookup_result" | cut -d'|' -f5)
-    local updated_filename=$(echo "$lookup_result" | cut -d'|' -f6)
     
     # Update statistics based on result
     case "$source" in
@@ -1192,10 +1106,6 @@ generate_manifest() {
         ;;
       "modrinth-hash"|"modrinth-search")
         MODRINTH_FOUND=$((MODRINTH_FOUND + 1))
-        ;;
-      "smart-update")
-        MODRINTH_FOUND=$((MODRINTH_FOUND + 1))
-        SMART_UPDATES=$((SMART_UPDATES + 1))
         ;;
       "curseforge-search")
         CURSEFORGE_FOUND=$((CURSEFORGE_FOUND + 1))
@@ -1227,22 +1137,11 @@ generate_manifest() {
       continue # Skip this mod, don't add to manifest
     fi
     
-    # Handle smart updates - use updated filename/hash if available
+    # Use the actual file information (no smart updates)
     local actual_filename="$filename"
     local actual_sha1="$file_sha1"
     local actual_sha512="$file_sha512"
     local actual_size="$file_size"
-    
-    if [ "$source" = "smart-update" ] && [ -n "$updated_filename" ]; then
-      actual_filename="$updated_filename"
-      actual_sha1="$updated_hash"  # This is still SHA1 from the lookup
-      # Need to calculate SHA512 for the updated file
-      actual_sha512=$(calculate_sha512 "$mod_file")
-      actual_size="$updated_size"
-      echo "  - Updated to: $actual_filename"
-      # Update environment for the new filename
-      mod_env=$(get_mod_environment "$actual_filename")
-    fi
     
     # Set environment variables based on mod_env
     local client_env="required"
@@ -1429,7 +1328,7 @@ create_mrpack() {
       local filename=$(basename "$mod_file")
       
       # Check if this mod needs to be included
-      local lookup_result=$(smart_mod_lookup "$mod_file")
+      local lookup_result=$(lookup_mod_with_validation "$mod_file")
       local result_type=$(echo "$lookup_result" | cut -d'|' -f1)
       local source=$(echo "$lookup_result" | cut -d'|' -f2)
       
@@ -1548,17 +1447,6 @@ generate_changelog() {
       detailed_changelog="${detailed_changelog}\n"
     fi
     
-    # Check for smart updates
-    if [ $SMART_UPDATES -gt 0 ]; then
-      detailed_changelog="${detailed_changelog}Smart Updates:\n"
-      detailed_changelog="${detailed_changelog}- $SMART_UPDATES mod(s) automatically updated to latest compatible versions\n"
-      detailed_changelog="${detailed_changelog}- Improved compatibility and bug fixes\n\n"
-      
-      if [ ${#added_mods[@]} -eq 0 ] && [ ${#removed_mods[@]} -eq 0 ]; then
-        short_changelog="Smart-updated $SMART_UPDATES mod(s) to latest versions"
-      fi
-    fi
-    
   elif [ "$change_type" = "config" ]; then
     echo "- Analyzing config changes..."
     
@@ -1663,7 +1551,6 @@ print_statistics() {
   echo "Modrinth downloads: $MODRINTH_FOUND"
   echo "CurseForge downloads: $CURSEFORGE_FOUND"
   echo "Manual overrides used: $MANUAL_OVERRIDES_USED"
-  echo "Smart updates applied: $SMART_UPDATES"
   echo "Included in pack: $PACK_INCLUDED"
   echo ""
   echo "- Environment Distribution:"
@@ -1682,10 +1569,6 @@ print_statistics() {
     echo "- Pack size reduction: 0%"
   fi
   echo ""
-  
-  if [ $SMART_UPDATES -gt 0 ]; then
-    echo "- $SMART_UPDATES mods were auto-updated to latest compatible versions"
-  fi
   
   if [ $PACK_INCLUDED -gt 0 ]; then
     echo "WARNING: $PACK_INCLUDED mods will be included in pack (dependencies or not found on platforms)"
@@ -1787,7 +1670,7 @@ main() {
   echo "- Also compatible with: PrismLauncher, MultiMC, and other launchers"
   echo "- Server compatibility: Client-only mods automatically excluded from dedicated servers"
   echo "- Mod lookup order: Manual overrides → Modrinth hash → Modrinth search → CurseForge search → Include in pack"
-  echo "- Smart updates: Non-dependency mods auto-update to latest compatible versions on hash mismatch"
+  echo "- Update policy: Use './tools/wave-based-update.sh' for safe dependency-aware mod updates"
   echo "- Shader configuration: Pre-configured for MakeUp-UltraFast shaders with 3x GUI scale"
   echo ""
   echo "- Modrinth App features:"
