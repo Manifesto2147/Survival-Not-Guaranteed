@@ -451,6 +451,10 @@ get_manual_environment_override() {
         echo "client_only"
         return
     fi
+    if [[ "$mod_name" == *"spellelemental"* ]]; then
+        echo "client_only"
+        return
+    fi
     
     # YDM's Weapon Master - From v4.1.0+ the client-only and multiplayer versions are merged
     # This mod requires both client and server since it uses networking channels

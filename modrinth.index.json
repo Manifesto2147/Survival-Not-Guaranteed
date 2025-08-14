@@ -1161,6 +1161,21 @@
       ]
     },
     {
+      "path": "mods/ForgeConfigAPIPort-v21.1.4-1.21.1-NeoForge.jar",
+      "hashes": {
+        "sha1": "6eb383b62e680deb6c6955552759b1be81a1973d",
+        "sha512": "2ffab30cde96341ac463168d457aea6eecf122baa3d8bb1e6d8db56070c8b090590da2c9570855481b9829ac1351d950582589c01c1056a8a9968ce45eb50cd3"
+      },
+      "env": {
+        "client": "required",
+        "server": "required"
+      },
+      "fileSize": 104575,
+      "downloads": [
+        "https://cdn.modrinth.com/data/ohNO6lps/versions/e5mORIZw/ForgeConfigAPIPort-v21.1.4-1.21.1-NeoForge.jar"
+      ]
+    },
+    {
       "path": "mods/fragmentum-neoforge-1.21.1-0.0.13.jar",
       "hashes": {
         "sha1": "28c7f5a14a0b25f395e275932235e97e9e27ffd9",
@@ -1873,7 +1888,7 @@
       },
       "env": {
         "client": "required",
-        "server": "required"
+        "server": "unsupported"
       },
       "fileSize": 104528,
       "downloads": [
