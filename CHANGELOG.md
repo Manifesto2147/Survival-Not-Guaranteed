@@ -1,12 +1,14 @@
-Survival Not Guaranteed v3.13.0
+Survival Not Guaranteed v3.14.1
 
-Release Date: August 14, 2025
-Previous Version: 3.13.0
+Release Date: August 15, 2025
+Previous Version: 3.14.0
 
-OTHER CHANGES
+CONFIGURATION CHANGES
 
-- Updated modpack components
-- General improvements and optimizations
+- Streamlined resource packs: Removed Fresh Mob Overhaul and Gray's Mob Overhaul
+- Kept only Alacrity resource pack for optimized visual experience
+- Updated options.txt to reflect resource pack changes
+- Performance and balance improvements
 
 TECHNICAL DETAILS
 
