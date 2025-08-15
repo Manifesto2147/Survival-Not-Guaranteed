@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "game": "minecraft",
-  "versionId": "3.12.13",
+  "versionId": "3.13.0",
   "name": "Survival Not Guaranteed",
   "summary": "A challenging survival modpack featuring magic, technology, and culinary adventures with optimized shaders",
   "files": [
@@ -258,21 +258,6 @@
       "fileSize": 54641,
       "downloads": [
         "https://cdn.modrinth.com/data/ftdbN0KK/versions/RNyYl9M3/badpackets-neo-0.8.2.jar"
-      ]
-    },
-    {
-      "path": "mods/baguettelib-1.21.1-NeoForge-1.0.0.jar",
-      "hashes": {
-        "sha1": "f052892e383dc2f3f22942c74485454311fee898",
-        "sha512": "fae4f02a274a686ba3db77a354aaf35eb7ee923cee306461f7dffb332395efb25cd9ee6d455fc149cf8c6bfb265b04e265558ab2cfac4f0264ce29f434f13720"
-      },
-      "env": {
-        "client": "unsupported",
-        "server": "required"
-      },
-      "fileSize": 24840,
-      "downloads": [
-        "https://cdn.modrinth.com/data/OfKzpbRU/versions/u7WCvvxF/baguettelib-1.21.1-NeoForge-1.0.0.jar"
       ]
     },
     {
@@ -1266,21 +1251,6 @@
       ]
     },
     {
-      "path": "mods/gravestonecurioscompat-1.21.1-NeoForge-3.0.1.jar",
-      "hashes": {
-        "sha1": "6af464b8bc270c8d21fca7022051d42b6f736484",
-        "sha512": "61e97e1af9b3439f66c8f79e68f9c8b0feec8ac6bf21f8f2e2d5c888534c4420b96e3067c7937accb42889e3146eadb90ee3a3daae3e89e41441849386805f4c"
-      },
-      "env": {
-        "client": "unsupported",
-        "server": "required"
-      },
-      "fileSize": 14841,
-      "downloads": [
-        "https://cdn.modrinth.com/data/NaiL8bPN/versions/HwlTVmVu/gravestonecurioscompat-1.21.1-NeoForge-3.0.1.jar"
-      ]
-    },
-    {
       "path": "mods/guiclock-1.21.1-4.7.jar",
       "hashes": {
         "sha1": "d3834b97b550ecae3a5f738f4c40e48dca9884fb",
@@ -1878,21 +1848,6 @@
       "fileSize": 199968,
       "downloads": [
         "https://cdn.modrinth.com/data/qyVF9oeo/versions/HwU1sCQJ/sound-physics-remastered-neoforge-1.21.1-1.4.15.jar"
-      ]
-    },
-    {
-      "path": "mods/spellelemental-0.1.3-beta.jar",
-      "hashes": {
-        "sha1": "80f62341335a0c0dbe59832dc6d1ef1f16377170",
-        "sha512": "23c0c2d8897fda4a93fdaeeedbe84b51c9d3f6509253cf98bd66b9d24a94e30f19e5b94213cad5ae1b69893990fd0ffeaa2b07be0b68a73f4abd1b075d789e44"
-      },
-      "env": {
-        "client": "required",
-        "server": "unsupported"
-      },
-      "fileSize": 104528,
-      "downloads": [
-        "https://cdn.modrinth.com/data/HlgqsPff/versions/C9C1qZtj/spellelemental-0.1.3-beta.jar"
       ]
     },
     {

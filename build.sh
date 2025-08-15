@@ -451,8 +451,11 @@ get_manual_environment_override() {
         echo "client_only"
         return
     fi
+    
+    # Spell Elemental - Force universal despite client-side code issues
+    # This mod has networking channels that require server presence
     if [[ "$mod_name" == *"spellelemental"* ]]; then
-        echo "client_only"
+        echo "both"
         return
     fi
     
@@ -513,16 +516,6 @@ get_manual_environment_override() {
     # (client: optional, server: required in Modrinth terms = "both" in our system)
     if [[ "$mod_name" == *"dungeons-and-taverns"* ]] || [[ "$mod_name" == *"dungeons_and_taverns"* ]]; then
         echo "both"
-        return
-    fi
-    
-    # Server-only mods that were causing environment mismatch errors
-    if [[ "$mod_name" == *"gravestonecurioscompat"* ]]; then
-        echo "server_only"
-        return
-    fi
-    if [[ "$mod_name" == *"baguettelib"* ]]; then
-        echo "server_only"
         return
     fi
     

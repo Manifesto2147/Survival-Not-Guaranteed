@@ -4,6 +4,10 @@
     "name": "modrinth",
     "version": ">=0.4.0"
   },
+  "loader": {
+    "name": "neoforge",
+    "version": "21.1.194"
+  },
   "memory": {
     "recommended": 4096,
     "minimum": 4096,

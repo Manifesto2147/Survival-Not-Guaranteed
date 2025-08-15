@@ -1,7 +1,7 @@
-Survival Not Guaranteed v3.12.13
+Survival Not Guaranteed v3.13.0
 
-Release Date: August 13, 2025
-Previous Version: 3.12.13
+Release Date: August 14, 2025
+Previous Version: 3.13.0
 
 OTHER CHANGES
 
@@ -10,13 +10,13 @@ OTHER CHANGES
 
 TECHNICAL DETAILS
 
-- Total Mods: 144
+- Total Mods: 141
 - Universal Mods (Client + Server): 130
-- Client-Only Mods: 11
-- Server-Only Mods: 3
+- Client-Only Mods: 10
+- Server-Only Mods: 1
 - Minecraft Version: 1.21.1
 - NeoForge Version: 21.1.194
-- External Downloads: 144 of 144 (100%)
+- External Downloads: 141 of 141 (100%)
 - Pack Size: Optimized with external downloads
 - Server Compatibility: Dedicated servers will automatically exclude client-only mods
 
